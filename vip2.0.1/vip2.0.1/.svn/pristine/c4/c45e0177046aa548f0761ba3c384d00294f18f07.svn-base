@@ -1,0 +1,47 @@
+$(function(){
+	/***点击修改时，弹出框绑定值****/
+	$(".edit_icon").click(function(){
+			var id =$(this).data("id");
+			 $.tpAjax.request({
+					url:basePath+"professional/professional/selectDetail/"+id+".htmls",
+					callback:function(data){
+						var data =eval("("+data+")");
+						$("#value").val(data[1]);
+						$("#value").attr("data-cid", data[2]);
+					}
+				},{  "id":id}); 
+			$(".updateProfession").fadeIn(200);
+			
+	});
+	/***取消影藏框***/
+	$(".NO").click(function(){
+		$(".updateProfession").hide();
+	});
+	
+	/***修改数据**/
+	$(".save").click(function(){
+		var id =$("#value").data("cid");
+		var value =$("#value").val();
+		tm_dialoag.confirm({
+    		sureText : "确定",
+    		canceText : "取消",
+    		content : "您确定保存职业信息吗?",
+    		callback : function(ok) {
+		 $.tpAjax.request({
+				url:basePath+"professional/professional/updateProfessional.htmls",
+				callback:function(data){
+					var data =eval("("+data+")");
+					if(data=="success"){
+						tmLoading("修改成功",1);
+						setTimeout(function(){
+							tm_refreash();
+						},1000);
+					}else if(data=="fail"){
+						tmLoading("修改失败,请核对是否存在该职业记录",1);
+					}
+				}
+			},{  "id":id,"codeValue":value});
+	}});
+	});
+});
+

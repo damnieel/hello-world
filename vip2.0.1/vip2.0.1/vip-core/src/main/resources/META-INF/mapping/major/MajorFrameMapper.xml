@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.major.MajorFrameMapper">
+	<resultMap id="MajorFrameResultMap" type="com.moon.vip.model.major.MajorFrame">
+		<id column="ID" property="id" jdbcType="INTEGER" />
+		<result column="type" property="type" jdbcType="CHAR" javaType="string" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="partent_id" property="partentId" jdbcType="INTEGER" />
+		<result column="parent_manage_role" property="parentManageRole"
+			jdbcType="INTEGER" />
+		<result column="level" property="level" jdbcType="INTEGER" />
+		<result column="organizate_order" property="organizateOrder"
+			jdbcType="INTEGER" />
+		<result column="is_valid" property="isValid" jdbcType="VARCHAR" />
+		<result column="is_end" property="isEnd" jdbcType="VARCHAR" />
+		<result column="start_date" property="startDate" jdbcType="TIMESTAMP" />
+		<result column="end_date" property="endDate" jdbcType="CHAR"
+			javaType="string" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="creator" property="creator" jdbcType="VARCHAR" />
+		<result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+		<result column="modify_user" property="modifyPerson" jdbcType="VARCHAR" />
+		<result column="version" property="version" jdbcType="INTEGER" />
+	</resultMap>
+
+	<!-- 校验名字是否存在 -->
+	<select id="checkNameIsNotExist" parameterType="java.lang.String"
+		resultType="java.lang.Integer">
+		select count(1) from vip_organizational_professional where
+		name=#{name,jdbcType=VARCHAR} and is_valid='Y'
+	</select>
+
+	<!-- 校验父节点下是否有子节点 -->
+	<select id="checkPidIsNotExistChildId" parameterType="java.lang.Integer"
+		resultType="java.lang.Integer">
+		select count(1) from vip_organizational_professional where
+		partent_id=#{id,jdbcType=INTEGER} and is_valid='Y'
+	</select>
+
+	<!-- 查询专业框架树的信息 -->
+	<select id="selectInfoById" 
+	resultType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		>
+		select ID,name,partent_id as pId,parent_manage_role as
+		parentManageRole,type as type
+		from vip_organizational_professional where is_valid
+		='Y' and ID in
+		<foreach collection="list" item="oid" index="index"
+		   open="(" close=")" separator=","> 
+		  #{oid}	
+		</foreach>
+<!-- 		and find_in_set(id, -->
+<!-- 		getChildList(#{id, jdbcType = INTEGER})) -->
+	
+		and type !="cla" 
+		order by
+		organizate_order DESC
+	</select>
+	<!-- 查询该专业的部门和集群 -->
+	<select id="selectBranchAndColony" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT a.name AS colonyName,b.name AS branchName FROM
+		vip_organizational_professional a
+		JOIN (SELECT NAME,partent_id AS pId
+		FROM
+		vip_organizational_professional WHERE ID=#{id,jdbcType=INTEGER}) b
+		ON a.ID=b.pId
+	</select>
+
+	<!-- 树形机构增加节点 -->
+	<insert id="addBranch" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		vip_organizational_professional
+		(name,partent_id,is_valid,creator,create_time,modify_user,modify_time,type,level)
+		values
+		(#{name,jdbcType=VARCHAR},#{pId,jdbcType=INTEGER},
+		'Y',#{creator,jdbcType=INTEGER},#{createTime,jdbcType=TIMESTAMP},
+		#{modifyPerson,jdbcType=INTEGER},#{modifyTime,jdbcType=TIMESTAMP},"org",
+		#{level,jdbcType=INTEGER})
+	</insert>
+
+	<!-- 添加专业 -->
+	<insert id="addMajor" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		useGeneratedKeys="true" keyProperty="id">
+		insert into
+		vip_organizational_professional
+		(name,partent_id,is_valid,creator,create_time,modify_user,modify_time,type)
+		values
+		(#{name,jdbcType=VARCHAR},#{id,jdbcType=INTEGER},
+		'Y',#{creator,jdbcType=INTEGER},#{createTime,jdbcType=TIMESTAMP},
+		#{modifyPerson,jdbcType=INTEGER},#{modifyTime,jdbcType=TIMESTAMP},"pro"
+		)
+	</insert>
+
+	<insert id="addMajorCode" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		insert into
+		vip_code_table(is_valid,type,type_name,code_key,code_value,create_time,creator,modify_time,modify_user)
+		values
+		('Y','professional_prefix',#{professionalPrex},#{majorCodeKey,jdbcType=VARCHAR},#{majorCodeValue,jdbcType=VARCHAR},#{createTime,jdbcType=TIMESTAMP},
+		#{creator,jdbcType=INTEGER},#{modifyTime,jdbcType=TIMESTAMP},#{modifyPerson,jdbcType=INTEGER})
+	</insert>
+
+	<!-- 根据id删除节点 -->
+	<delete id="deleteById" parameterType="java.lang.Integer">
+		update
+		vip_organizational_professional
+		set is_valid='N' where
+		ID=#{id,jdbcType=INTEGER}
+	</delete>
+
+	<!-- 删除专业 -->
+	<delete id="deleteMajor" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		update
+		vip_organizational_professional
+		set is_valid='N' where
+		ID=#{id,jdbcType=INTEGER}
+	</delete>
+
+	<!-- 重命名 -->
+	<update id="rename" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		update
+		vip_organizational_professional
+		set
+		name=#{name,jdbcType=VARCHAR},modify_time=#{modifyTime,jdbcType=TIMESTAMP},modify_user=#{modifyPerson,jdbcType=TIMESTAMP}
+		where
+		id=#{id,jdbcType=INTEGER} and is_valid='Y'
+	</update>
+
+	<!-- 修改专业 -->
+	<update id="updateMajor" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		update
+		vip_organizational_professional
+		set name=#{name,jdbcType=VARCHAR} where
+		ID=#{id,jdbcType=INTEGER}
+	</update>
+
+	<!-- 修改专业代码 -->
+	<update id="updateMajorCode" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		update
+		vip_code_table
+		set
+		code_value=#{majorCodeValue,jdbcType=VARCHAR},modify_time=#{modifyTime,jdbcType=TIMESTAMP},modify_user=#{modifyPerson,jdbcType=INTEGER}
+		where
+		code_key=#{majorCodeKey,jdbcType=INTEGER} and
+		type='professional_prefix' and is_valid='Y'
+	</update>
+	<!-- 	拖拽节点 -->
+	<update id="updateOrganizationPid" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		update vip_organizational_professional set partent_id=#{pId} where ID=#{id}
+	</update>
+
+	<!-- 校验专业代码是否存在 -->
+	<select id="selectMajorCodeIsNotExist" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="java.lang.Integer">
+		select count(1) from vip_code_table where
+		code_key=#{majorCodeKey,jdbcType=VARCHAR} and
+		type='professional_prefix' and is_valid='Y'
+	</select>
+
+	<!-- 校验专业代码是否存在 -->
+	<select id="selectMajorCodeValueIsNotExist" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="java.lang.Integer">
+		select count(1) from vip_code_table where
+		code_value=#{majorCodeValue,jdbcType=VARCHAR} and
+		type='professional_prefix' and is_valid='Y'
+		<if test="oldCode != null">
+		and code_value!=#{oldCode,jdbcType=VARCHAR}
+		</if>
+	
+	</select>
+
+
+	<!-- 校验新的专业名称是否存在 -->
+	<select id="checkNewMajorNameIsNotExist" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="java.lang.Integer">
+		select count(1) from vip_organizational_professional where
+		name=#{name,jdbcType=VARCHAR}
+		and name!=#{majorName,jdbcType=VARCHAR}
+		and is_valid='Y'
+	</select>
+
+
+	<select id="searchContent" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT b.branchId AS branchId,b.teacher AS teacher,b.adviser AS adviser,b.branchName AS branchName,b.colonyName AS colonyName,b.majorId AS majorId,
+		b.majorName AS majorName, b.majorCode AS majorCode
+		FROM (SELECT b.partent_id AS branchId,IF(GROUP_CONCAT(DISTINCT eb.nick_name)!="null",GROUP_CONCAT(DISTINCT eb.nick_name),"无") AS teacher,
+		IF(GROUP_CONCAT(DISTINCT eba.nick_name)!="null",GROUP_CONCAT(DISTINCT eba.nick_name),"无") AS adviser,
+		br.name AS branchName,a.name AS colonyName,b.ID AS majorId,b.name AS majorName,ct.code_value AS majorCode
+		FROM vip_organizational_professional br
+		JOIN (SELECT DISTINCT `name`, ID FROM vip_organizational_professional WHERE is_valid='Y' ) a
+		ON br.partent_id=a.ID
+		JOIN (SELECT DISTINCT `name` ,ID, partent_id  FROM vip_organizational_professional WHERE `type`="pro" AND is_valid='Y') b
+		ON br.ID =b.partent_id
+		LEFT JOIN (SELECT DISTINCT `name`,ID ,partent_id FROM vip_organizational_professional WHERE `type`="cla" AND is_valid='Y') cls
+		ON b.ID =cls.partent_id
+		LEFT JOIN `vip_OP_manager` om ON b.ID=om.op_id AND om.type='teacher'
+		LEFT JOIN vip_employee_base eb ON om.employee_code = eb.employee_code
+		LEFT JOIN `vip_OP_manager` oma ON b.ID=oma.op_id AND oma.type='adviser'
+		LEFT JOIN vip_employee_base eba ON oma.employee_code = eba.employee_code
+		LEFT JOIN `vip_code_table`  ct ON b.ID=ct.code_key
+		WHERE  br.ID IN 
+		<foreach collection="opClaIds" item="oid" index="index"
+		   open="(" close=")" separator=","> 
+		  #{oid}	
+		</foreach>
+		<if test="id != null">
+		and br.ID=#{id}
+		</if>
+		GROUP BY br.name,a.name,b.name,ct.code_value
+		)b
+		<if test="content != null">
+		WHERE b.majorName LIKE CONCAT(CONCAT('%',#{content}),'%')
+		OR b.teacher LIKE CONCAT(CONCAT('%',#{content}),'%')
+		</if>
+		LIMIT #{startNumber,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER};
+	</select>
+
+	<select id="getSearchCount" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="java.lang.Integer">
+		SELECT COUNT(1) FROM (SELECT
+		IF(GROUP_CONCAT(DISTINCT eb.nick_name)!="null",GROUP_CONCAT(
+		DISTINCT
+		eb.nick_name),"无") AS teacher,
+		br.name AS branchName,a.name AS
+		colonyName,b.name AS
+		majorName
+		FROM vip_organizational_professional br
+		JOIN (SELECT DISTINCT
+		`name`, ID FROM vip_organizational_professional
+		WHERE is_valid='Y' ) a
+		ON br.partent_id=a.ID
+		JOIN (SELECT DISTINCT
+		`name` ,ID, partent_id FROM
+		vip_organizational_professional WHERE
+		`type`='pro' AND is_valid='Y') b
+		ON br.ID =b.partent_id
+		LEFT JOIN (SELECT
+		DISTINCT `name`,ID ,partent_id
+		FROM vip_organizational_professional
+		WHERE `type`='cla' AND
+		is_valid='Y') cls
+		ON b.ID =cls.partent_id
+		LEFT
+		JOIN `vip_OP_manager` om ON
+		cls.ID=om.op_id
+		LEFT JOIN vip_employee_base
+		eb ON om.employee_code =
+		eb.employee_code
+		LEFT JOIN `vip_code_table` ct
+		ON b.ID=ct.code_key
+		WHERE  br.ID IN 
+		<foreach collection="opClaIds" item="oid" index="index"
+		   open="(" close=")" separator=","> 
+		  #{oid}	
+		</foreach>
+		<if test="id != null">
+		and br.ID=#{id}
+		</if>
+		GROUP
+		BY br.name,a.name,b.name,ct.code_value
+		)b
+		<if test="content != null">
+		 WHERE b.majorName LIKE CONCAT(CONCAT('%',#{content}),'%')
+		OR b.teacher LIKE CONCAT(CONCAT('%',#{content}),'%')
+		</if>
+		
+	</select>
+
+	<!-- 查询专业的老师或者班主任 -->
+	<select id="selectTeacherOrAdviser" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT eb.employee_code AS
+		employeeCode,CONCAT('[',eb.name,']',eb.nick_name) AS teacherName
+		FROM vip_employee_base  eb 
+		JOIN vip_employee_role er ON eb.`ID`=er.employee_id
+		JOIN vip_role  r ON er.role_id=r.id
+		WHERE r.code=#{type,jdbcType=VARCHAR}
+		GROUP BY eb.`employee_code`
+	</select>
+
+	
+	<select id="selectTeacherOrAdviserByCode" resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT GROUP_CONCAT( DISTINCT eb.`nick_name`) AS name FROM
+		vip_employee_base eb
+		LEFT JOIN vip_OP_manager om ON eb.employee_code=
+		om.employee_code
+		where eb.employee_code in
+		<foreach collection="list" item="item" index="index"
+			open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</select>
+
+	<!-- 查询专业班主任 -->
+<!-- 	<select id="selectAdviserByCode" parameterType="com.moon.vip.model.major.ColonyAndBranch"
+		resultType="com.moon.vip.model.major.ColonyAndBranch">
+		SELECT GROUP_CONCAT( DISTINCT eb.`nick_name`) AS `adviser` FROM
+		vip_employee_base eb
+		LEFT JOIN vip_OP_manager om ON eb.employee_code=
+		om.employee_code
+		where eb.employee_code in
+		<foreach collection="adviserList" item="item" index="index"
+			open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</select> -->
+
+
+	<!-- 查询专业的老师 -->
+	<!-- <select id="selectTeacherByCode" parameterType="com.moon.vip.model.major.ColonyAndBranch"
+		resultType="com.moon.vip.model.major.ColonyAndBranch">
+		SELECT GROUP_CONCAT( DISTINCT eb.`nick_Name`) AS `teacher` FROM
+		vip_employee_base eb
+		LEFT JOIN vip_OP_manager om ON eb.employee_code=
+		om.employee_code
+		where eb.employee_code in
+		<foreach collection="teacherList" item="item" index="index"
+			open="(" close=")" separator=",">
+			#{item}
+		</foreach>
+	</select> -->
+
+	<!-- <insert id="addTeacher">
+		insert into
+		`vip_OP_manager`(op_id,type,employee_code,create_time,creator,modify_time,modify_user)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.id},#{item.type},#{item.teacher},#{item.createTime},#{item.creator},#{item.modifyTime},#{item.modifyPerson})
+		</foreach>
+	</insert>
+
+	<insert id="addAdviser">
+		insert into
+		`vip_OP_manager`(op_id,type,employee_code,create_time,creator,modify_time,modify_user)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.id},#{item.type},#{item.adviser},#{item.createTime},#{item.creator},#{item.modifyTime},#{item.modifyPerson})
+		</foreach>
+	</insert> -->
+	
+	
+	<insert id="addTeacherOrAdviser">
+		insert into
+		`vip_OP_manager`(op_id,type,employee_code,create_time,creator,modify_time,modify_user)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.id},#{item.type},#{item.employeeCode},#{item.createTime},#{item.creator},#{item.modifyTime},#{item.modifyPerson})
+		</foreach>
+	</insert>
+
+
+
+
+	<!-- 查询所有的机构负责人 -->
+	<select id="selectAppointPerson" parameterType="java.lang.Integer" resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT
+		eb.employee_code AS employeeCode,CONCAT('[', eb.name,']',eb.nick_name)
+		AS NAME FROM vip_employee_role er
+		JOIN vip_employee_base eb ON
+		er.employee_id=eb.ID
+		WHERE er.role_id=#{id}
+	</select>
+
+	<!-- 跟据部门ID查询部门的机构负责人 -->
+	<select id="selectAppointPersonById" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT employee_code as employeeCode FROM vip_OP_leader
+		WHERE op_id=#{id,jdbcType=INTEGER} AND role=#{roleId}
+	</select>
+
+
+	<delete id="deleteSuperior" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO" >
+		delete from
+		`vip_OP_leader` where op_id=#{id,jdbcType=INTEGER} and role=#{roleId,jdbcType=INTEGER};
+	</delete>
+	
+	<delete id="deleteMajorTeacherAndAdviser" parameterType="java.lang.Integer">
+		delete from
+		`vip_OP_manager` where op_id=#{id,jdbcType=INTEGER};
+	</delete>
+	
+
+
+	<insert id="addSuperior">
+		insert into
+		`vip_OP_leader`(op_id,role,employee_code,create_time,creator,modify_time,modify_user)
+		values
+		<foreach collection="list" item="item" index="index"
+			separator=",">
+			(#{item.id},#{item.roleId},#{item.superior},#{item.createTime},#{item.creator},#{item.modifyTime},#{item.modifyPerson})
+		</foreach>
+	</insert>
+
+	<select id="searchTeacherOrAdviser" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+		resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT eb.employee_code AS employeeCode,CONCAT('[',
+		eb.name,']',
+		eb.nick_name) AS `NAME` FROM vip_employee_base eb
+		LEFT JOIN
+		 vip_employee_role  er ON eb.ID=er.employee_id
+		LEFT JOIN 
+		vip_role vr ON er.`role_id`=vr.`ID`
+		WHERE
+		vr.code=#{type}
+		AND (eb.name LIKE CONCAT(CONCAT('%',#{content}),'%')
+		OR
+		eb.nick_name LIKE CONCAT(CONCAT('%',#{content}),'%'))
+		GROUP BY
+		eb.employee_code,eb.name
+		
+		
+	</select>
+
+	<select id="getTeacherAndAdviser" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO" 
+	resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT eb.employee_code AS employeeCode,GROUP_CONCAT(eb.nick_name) AS NAME FROM vip_OP_manager om
+		JOIN vip_employee_base eb ON om.employee_Code=eb.employee_Code
+		WHERE om.op_id=#{id} AND om.TYPE =#{type}
+	</select>
+
+	
+	
+	<select id="getUpdateTeacherListOrAdviserList" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+	 resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT eb.employee_code AS
+		employeeCode,CONCAT('[',eb.name,']',eb.nick_name) AS NAME
+		FROM vip_employee_base  eb 
+		JOIN vip_employee_role er ON eb.`ID`=er.employee_id
+		JOIN vip_role  r ON er.role_id=r.id
+		WHERE r.code=#{type,jdbcType=VARCHAR} AND eb.employee_code NOT IN 
+		(SELECT employee_code FROM vip_OP_manager WHERE op_id=#{id,jdbcType=INTEGER})
+		GROUP BY eb.`employee_code`
+	</select>
+	
+	<select id="getChooseTeacherListOrAdviserList" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO"
+	 resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT eb.employee_code AS employeeCode,CONCAT('[',eb.name,']',eb.nick_name) AS `NAME` 
+		FROM vip_OP_manager om
+		JOIN vip_employee_base eb ON om.employee_Code=eb.employee_Code
+		WHERE om.op_id=#{id} AND om.TYPE =#{type}
+	</select>
+	
+	<select id="getClassCount" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO" resultType="java.lang.Integer">
+		SELECT COUNT(*) FROM (SELECT pro.`ID`AS majorId,pro.`name`AS majorName,cla.ID AS id,cla.`name` AS className,cla.start_date AS startDate,cla.end_date AS endDate,cla.is_end AS isEnd,
+		IF(GROUP_CONCAT(DISTINCT eb.nick_name)!="null",GROUP_CONCAT(DISTINCT eb.nick_name),"无") AS teacher,
+		IF(GROUP_CONCAT(DISTINCT eba.nick_name)!="null",GROUP_CONCAT(DISTINCT eba.nick_name),"无") AS adviser
+		FROM vip_organizational_professional pro
+		LEFT JOIN (SELECT * FROM vip_organizational_professional WHERE TYPE='cla') cla ON pro.`ID`=cla.partent_id
+		LEFT JOIN `vip_OP_manager` om ON cla.ID=om.op_id AND om.type='teacher'
+		LEFT JOIN vip_employee_base eb ON om.employee_code = eb.employee_code
+		LEFT JOIN `vip_OP_manager` oma ON cla.ID=oma.op_id AND oma.type='adviser'
+		LEFT JOIN vip_employee_base eba ON oma.employee_code = eba.employee_code
+		WHERE pro.`type`="pro" AND pro.`is_valid`="Y"  AND cla.is_valid="Y"
+		AND pro.ID IN
+		<foreach collection="opClaIds" item="oid" index="index"
+		   open="(" close=")" separator=","> 
+		  #{oid}	
+		</foreach>
+		<if test="id != null">
+			AND pro.`ID`=#{id}
+		</if>
+		GROUP BY pro.`ID`,cla.ID
+		ORDER BY cla.create_time DESC
+		) b
+		<if test="content !=null">
+		WHERE b.majorName LIKE CONCAT(CONCAT('%',#{content}),'%')
+		OR b.teacher LIKE CONCAT(CONCAT('%',#{content}),'%') 
+		</if>
+	</select>
+	<select id="getClassInfo" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO" resultType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		SELECT b.majorID,b.majorName,b.id,b.className,b.startDate,b.endDate,b.isEnd,b.teacher,b.adviser
+		FROM (SELECT pro.`ID`AS majorId,pro.`name`AS majorName,cla.ID AS id,cla.`name` AS className,
+		cla.start_date AS startDate,cla.end_date AS endDate,cla.is_end AS isEnd,
+		IF(GROUP_CONCAT(DISTINCT eb.nick_name)!="null",GROUP_CONCAT(DISTINCT eb.nick_name),"无") AS teacher,
+		IF(GROUP_CONCAT(DISTINCT eba.nick_name)!="null",GROUP_CONCAT(DISTINCT eba.nick_name),"无") AS adviser
+		FROM vip_organizational_professional pro
+		LEFT JOIN (SELECT * FROM vip_organizational_professional WHERE TYPE='cla') cla ON pro.`ID`=cla.partent_id
+		LEFT JOIN `vip_OP_manager` om ON cla.ID=om.op_id AND om.type='teacher'
+		LEFT JOIN vip_employee_base eb ON om.employee_code = eb.employee_code
+		LEFT JOIN `vip_OP_manager` oma ON cla.ID=oma.op_id AND oma.type='adviser'
+		LEFT JOIN vip_employee_base eba ON oma.employee_code = eba.employee_code
+		WHERE pro.`type`="pro" AND pro.`is_valid`="Y"  AND cla.is_valid="Y"
+		AND  pro.ID IN 
+		<foreach collection="opClaIds" item="oid" index="index"
+		   open="(" close=")" separator=","> 
+		  #{oid}	
+		</foreach>
+		<if test="id != null">
+			AND pro.`ID`=#{id}
+		</if>
+		GROUP BY pro.`ID`,cla.ID
+		ORDER BY cla.create_time DESC
+		) b
+		<if test="content !=null">
+		WHERE b.majorName LIKE CONCAT(CONCAT('%',#{content}),'%')
+		OR b.teacher LIKE CONCAT(CONCAT('%',#{content}),'%') 
+		</if>
+		LIMIT #{startNumber,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER};
+	</select>
+	
+	<insert id="addClass" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO" useGeneratedKeys="true" keyProperty="id" >
+		INSERT INTO vip_organizational_professional(name,type,partent_id,is_valid,is_end,start_date,end_date,creator,create_time)
+		VALUES(#{className},#{type},#{majorId},#{isValid},#{isEnd},#{startDate},#{endDate},#{creator},#{createTime})
+	</insert>
+	
+	<insert id="addClassTeacherOrAdviser" parameterType="com.moon.vip.infra.vo.sys.MajorFrameVO">
+		INSERT INTO vip_OP_manager(op_id,type,employee_code,creator,create_time)
+		VALUES(#{id},#{type},#{employeeCode},#{creator},#{createTime})
+	</insert>
+	
+	<delete id="deleteTeacherAndAdviser" parameterType="java.lang.Integer">
+		delete from vip_OP_manager where op_id=#{id}
+	</delete>
+
+</mapper>

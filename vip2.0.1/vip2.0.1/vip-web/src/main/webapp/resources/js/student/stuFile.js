@@ -1,0 +1,100 @@
+var currentCount = 0;
+//初始化10条全部数据
+$.ajax({
+	type:"get",
+	url:basePath+"studentFile/queryFilesTotalRecord.htmls",
+	success:function(data){
+		tm_init_page(data,false);
+		currentCount = data;
+		$("#Pagination").hide();
+	}
+});
+var organizationId=1,startDate,endDate;
+var keyWord="";
+$(function(){
+	
+	
+	
+/***浏览器兼容(回车事件)***/
+$('.search_box').on('keydown',function(e){
+	var keycode=document.all?event.keyCode:e.which;
+	
+	if(keycode==13){
+		$(".search_icon").click();
+	}
+	e.stopPropagation();
+}); 
+	
+$("#search").on("click",function(){
+		//获取部门的id
+	  var dom = $("#element_id>select:visible:last");
+	  var orgProCalId = (dom.val() == 0)?dom.prev("select").val():dom.val();
+	  organizationId = !isNaN(orgProCalId)?orgProCalId :1;
+		//**获取时间**/
+	  if((isEmpty($("#startDate").val())!=isEmpty($("#endDate").val()))){
+		  tmLoading("请设置正确的时间段",1);
+		  return false;
+	  }
+	  startDate=$("#startDate").val();
+	  endDate=$("#endDate").val();
+	  keyWord=$("#keyWord").val();
+	  
+	  
+	  $.ajax({
+			type:"get",
+			data:{
+				"organizationId":organizationId,
+				"startDate":startDate,
+				"endDate":endDate,
+				"keyWord":keyWord,
+			},
+			url:basePath+"studentFile/queryFilesTotalRecord.htmls",
+			success:function(data){
+				currentCount = data;
+				tm_init_page(data,true);
+				$("#Pagination").hide();
+			}
+		});
+	 });
+});
+
+
+/*初始化方法 */
+function tm_init_page(itemCount,isSearch) {
+	$("#Pagination").pagination(itemCount, {
+		num_edge_entries : 3, //边缘页数
+		num_display_entries : 3, //主体页数
+		current_page : 0,
+		showGo:true,
+		showSelect:true,
+		is_search:isSearch,
+		items_per_page : 10, //每页显示X项
+		prev_text : "前一页",
+		next_text : "后一页",
+		callback : function(pageNo,psize) {
+			tm_load_template(pageNo,psize);
+		}
+	});
+};
+/*分页模板 */
+function tm_load_template(pageNo,psize,callback){
+		$.ajax({
+			type:"get",
+			url:basePath+"studentFile/queryFilesTemplate.htmls",
+			data:{
+				"organizationId":organizationId,
+				"startDate":startDate,
+				"endDate":endDate,
+				"keyWord":keyWord,
+				'pageNo':pageNo*psize,
+				'pSize':psize
+			},
+			success:function(data){
+				tmLoading("加载成功",0.4);
+				if(currentCount > 10){
+					$("#Pagination").show();
+				}
+				$("#Result").html(data);
+			}
+	});
+};

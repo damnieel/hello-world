@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.OPManagerSqlMapper" >
+<resultMap id="BaseResultMap" type="com.moon.vip.infra.vo.interviews.OPManagerVO" >
+  <id column="ID" property="id" jdbcType="INTEGER" />
+  <result column="op_id" property="opId" jdbcType="INTEGER" />
+  <result column="type" property="type" jdbcType="VARCHAR" />
+  <result column="employee_code" property="employeeCode" jdbcType="VARCHAR" />
+  <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+  <result column="creator" property="creator" jdbcType="VARCHAR" />
+  <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+  <result column="modify_user" property="modifyUser" jdbcType="VARCHAR" />
+  <result column="version" property="version" jdbcType="INTEGER" />
+  <result column="nick_name" property="nickName" jdbcType="VARCHAR" />
+</resultMap>
+
+<select id="selectByProfessionId" resultMap="BaseResultMap">
+SELECT
+  opm.*,
+  eb.nick_name nickName
+FROM
+  vip_organizational_professional op,
+  vip_OP_manager opm,
+  vip_employee_base eb
+WHERE
+	is_valid = 'Y'
+AND op.ID=opm.op_id
+AND opm.employee_code=eb.employee_code
+AND opm.type= 'teacher'
+AND FIND_IN_SET(op.id, getChildList(#{professionId, jdbcType = INTEGER}))
+</select>
+<update id="updateByClaIdAndType">
+update vip_OP_manager set
+ employee_code = #{empCode,jdbcType = VARCHAR} ,
+ modify_time = now(),
+ modify_user = #{userCode,jdbcType = VARCHAR}
+WHERE op_id = #{id ,jdbcType = INTEGER} AND type =#{type,jdbcType = VARCHAR}
+
+</update>
+<select id="getProMag"  resultType="com.moon.vip.infra.vo.sys.ClassManagerVO">
+	SELECT 
+		a.employee_code as empCode,
+		b.nick_name as nickName
+	FROM
+	   vip_OP_manager  a
+	JOIN vip_employee_base b ON  a.employee_code = b.employee_code 
+	WHERE
+    a.type =  #{type,jdbcType = VARCHAR}
+	AND op_id = #{id,jdbcType = VARCHAR}
+</select>
+
+</mapper>

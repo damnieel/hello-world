@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.StudentArchivesSearchSqlMapper" >
+ 	  
+  <!-- 展示所有学员信息列表 -->
+  <select id="selectAllStudent" resultType="com.moon.vip.infra.vo.student.StudentVO">
+     SELECT a.ID AS id,a.`name` AS stuName,
+	a.telephone AS telephone,a.QQ AS QQ
+	FROM vip_student_archives a
+	<where> 
+	EXISTS(
+           SELECT null 
+             FROM vip_student_professional p
+		    WHERE p.student_id =a.ID  AND p.is_valid = 'Y'
+    )
+	 <if test="keyWord !=null and keyWord !='' ">
+	    AND  a.QQ like CONCAT(CONCAT('%',#{keyWord}),'%')
+	 </if>
+	
+	</where>
+	ORDER BY a.ID DESC
+	LIMIT #{offset},#{pageSize};
+  </select> 
+  
+
+  
+  <!-- 查询总数 -->
+  <select id="selectAllStudentCount" resultType="java.lang.Integer" parameterType="com.moon.vip.infra.vo.student.StudentVO">
+   SELECT COUNT(*)
+	FROM vip_student_archives a
+	<where> 
+	EXISTS(
+           SELECT null 
+             FROM vip_student_professional p
+		    WHERE p.student_id =a.ID AND p.is_valid = 'Y'
+    )
+	 <if test="keyWord !=null and keyWord !='' ">
+	    AND a.QQ like CONCAT(CONCAT('%',#{keyWord}),'%')
+	 </if>
+	</where>
+  </select>
+  
+  <!-- 修改学员基础信息 -->
+  <update id="updateStudent" parameterType="com.moon.vip.infra.vo.student.StudentVO">
+   UPDATE vip_student_archives 
+   <set>
+     <if test="stuName != null">
+        `name` = #{stuName,jdbcType=VARCHAR},
+     </if>
+     <if test="telephone != null">
+        telephone = #{telephone,jdbcType=VARCHAR},
+     </if>
+     <if test="QQ != null">
+        QQ = #{QQ,jdbcType=VARCHAR},
+     </if>
+     <if test="modifyTime != null">
+        modify_time = #{modifyTime},
+     </if>
+     <if test="modifyUser != null">
+        modify_user = #{modifyUser}
+     </if>
+   </set>
+   WHERE ID = #{id,jdbcType=INTEGER};
+  </update>
+  
+  <!-- 修改后的学员信息是否存在 -->
+  <select id="selectStuExist" parameterType="com.moon.vip.infra.vo.student.StudentVO" resultType="java.lang.Integer">
+   SELECT COUNT(*) FROM vip_student_archives
+    WHERE `name` =#{stuName} AND telephone = #{telephone} AND QQ = #{QQ};
+  </select>
+  
+</mapper>

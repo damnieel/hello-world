@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.CodeTableSqlMapper" >
+  <select id="selectByTypeAndCodeValue" resultType="java.lang.String" parameterType="java.lang.String">
+	SELECT
+		code_key
+	FROM
+		vip_code_table
+	WHERE
+		type = #{type, jdbcType=VARCHAR}
+	AND code_value = #{codeValue, jdbcType=VARCHAR}
+	AND is_valid = 'Y';
+  </select>
+    <select id="selectByTypeAndCodeKey" resultType="java.lang.String" parameterType="java.lang.String">
+	SELECT
+		code_value
+	FROM
+		vip_code_table
+	WHERE
+		type = #{type, jdbcType=VARCHAR}
+	AND code_key = #{codeKey, jdbcType=VARCHAR}
+	AND is_valid = 'Y';
+  </select>
+  
+  <select id="selectListByType" resultType="com.moon.vip.infra.vo.student.CodeTableVO" parameterType="java.lang.String">
+  	SELECT code_key as codeKey,code_value as codeValue from vip_code_table where type= #{type, jdbcType=VARCHAR} and is_valid = 'Y';
+  </select>
+</mapper>

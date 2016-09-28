@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.RoleSqlMapper" >
+	<!-- 获取角色信息 id name scope -->
+	<select id="selectAllRole" resultType="com.moon.vip.infra.vo.sys.userManage.UserRoleInfoVO">
+	SELECT
+		total.roleId,
+		total.roleName,
+		GROUP_CONCAT(total.scope) as scope
+	FROM
+		(
+			SELECT
+				role.ID AS roleId,
+				role.`name` AS roleName,
+				menuRes.`name` AS scope
+			FROM
+				vip_role role,
+				vip_menu_resource menuRes,
+				vip_role_menu roleMenu
+			WHERE
+				role.is_valid = 'Y'
+			AND menuRes.is_valid = 'Y'
+			AND role.ID = roleMenu.role_id
+			AND roleMenu.menu_id = menuRes.ID
+			ORDER BY
+				menuRes.ID
+		) total
+	GROUP BY
+		total.roleId
+	</select>
+	<!-- 根据工号查找该员工所有的roleid -->
+	<select id="selectRoleIdByEmpCode" parameterType="java.lang.String"
+						resultType="java.lang.Integer">
+		SELECT
+			role.role_id
+		FROM
+			vip_employee_role role,
+			vip_employee_base emp
+		WHERE
+			emp.employee_code = #{employeeCode, jdbcType=VARCHAR}
+		AND emp.ID = role.employee_id
+	</select>
+	<delete id="delByUserId" parameterType="java.lang.Integer">
+	DELETE from vip_employee_role WHERE employee_id = #{id, jdbcType=INTEGER};
+	</delete>
+	<!-- 根据员工id roleid 和动作类型来确定是否显示标签 -->
+	<select id="selectOperType" parameterType="com.moon.vip.infra.vo.sys.roleManage.RoleDataOperVO"
+						resultType="java.lang.Integer">
+	SELECT
+		count(1)	
+	FROM
+		vip_employee_role empRole,
+		vip_role_data_action roleAct,
+		vip_action_type type,
+		vip_data_rule rule
+	WHERE 
+		empRole.role_id = roleAct.role_id
+	AND roleAct.action_id = type.ID
+	AND empRole.employee_id = #{id, jdbcType=INTEGER}
+	AND roleAct.role_id = #{roleId, jdbcType=INTEGER}
+	AND roleAct.rule_id = rule.ID
+	AND type.type = #{operType, jdbcType=VARCHAR}
+	AND rule.ID in
+		<foreach collection="ruleIdList" item="Id" index="i" open="(" separator="," close=")">
+			#{Id}
+		</foreach>
+	</select>
+	<select id="selectByRoleName" resultType="java.lang.Integer">
+		select count(1) from vip_role where name=#{roleName, jdbcType=VARCHAR} and is_valid='Y';
+	</select>
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.ProfessionalMapper" >
+   
+   
+   <!-- 展示全部职业数据 -->
+   <select id="selectAllProfessional" resultType="com.moon.vip.infra.vo.student.ProfessionalVO">
+      SELECT ID AS id,type AS type, type_name AS typeName,code_key AS codeKey,code_value AS codeValue,
+      code_order AS codeOrder,is_valid AS isValid,note AS note,create_time AS createTime,
+      creator AS creator,modify_time AS modifyTime,modify_user AS modifyUser, version AS version
+       FROM vip_code_table WHERE type ='professional' ORDER BY create_time DESC limit #{offset},#{pageSize};
+   </select>
+   
+   <!-- 获取全部职业数据总数 -->
+   <select id="selectProCount" resultType="java.lang.Integer">
+       SELECT COUNT(*)
+       FROM vip_code_table WHERE type ='professional';
+   </select>
+   
+   <!-- 添加职业数据 -->
+   <insert id="insertProfessional"  useGeneratedKeys="true" keyProperty="id" parameterType="com.moon.vip.infra.vo.student.ProfessionalVO">
+      INSERT into vip_code_table (type,type_name,code_key,code_value,code_order,is_valid,
+      create_time,creator,modify_time) 
+      VALUES(#{type,jdbcType=VARCHAR},#{typeName,jdbcType=VARCHAR},#{codeKey,jdbcType=VARCHAR},
+      #{codeValue,jdbcType=VARCHAR},#{codeOrder,jdbcType=INTEGER},#{isValid,jdbcType=VARCHAR},
+      #{createTime,jdbcType=TIMESTAMP},#{creator,jdbcType=VARCHAR},#{modifyTime,jdbcType=TIMESTAMP});
+   </insert>
+   
+   <!-- 查询码表职业数据Key和order的最大值 -->
+   <select id="selectMaxKey" resultType="com.moon.vip.infra.vo.student.ProfessionalVO">
+      SELECT code_order AS codeOrder ,code_key AS codeKey ,type AS type
+      FROM vip_code_table 
+      WHERE  
+      code_order =(SELECT MAX(code_order) FROM vip_code_table WHERE type ='professional') AND type ='professional';
+   </select>
+   
+   <!-- 根据id查看详情 -->
+   <select id="selectDetail" resultType="com.moon.vip.infra.vo.student.ProfessionalVO">
+       SELECT id AS id,code_value AS codeValue FROM vip_code_table WHERE  id=#{id};
+   </select>
+   
+   <!-- 修改职业数据 -->
+   <update id="updateProfessional" parameterType="com.moon.vip.infra.vo.student.ProfessionalVO">
+      UPDATE  vip_code_table SET code_value =#{codeValue,jdbcType=VARCHAR} 
+      WHERE 
+          type ='professional' AND ID =#{id,jdbcType=INTEGER};
+   </update>
+   
+   <!-- 批量删除职业数据<方法一> -->
+   <delete id="deleteProfessional" >
+     DELETE FROM vip_code_table where type='professional' AND ID in
+         <foreach collection="list" item="id"  open="(" separator="," close=")">
+           #{id,jdbcType=INTEGER}
+         </foreach>
+   </delete>
+   
+   <!-- 根据专业查询专业前缀（用于学员编号） -->
+   <select id="selectCoursePrefix" resultType="com.moon.vip.infra.vo.student.ProfessionalVO">
+     SELECT code_value as coursePrefix  FROM vip_code_table 
+     WHERE code_key =#{course,jdbcType=VARCHAR} AND type = 'professional_prefix';
+   </select>
+   
+   <!-- 查询所有下拉框中的值 （用于学员信息）-->
+   <select id="selectALLDownbox" resultType="com.moon.vip.infra.vo.student.ProfessionalVO">
+     SELECT code_key as codeKey,code_value as codeValue ,type as type
+     FROM vip_code_table 
+     WHERE 
+     type in('refund_reason','payment','degree','professional') AND is_valid = 'Y' ;
+   </select>
+   
+   <!-- 查询是否存在职业数据值 -->
+   <select id="selectIsExist" parameterType="java.lang.String" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM vip_code_table WHERE type = 'professional' AND code_value = #{codeValue,jdbcType=VARCHAR};
+   </select>
+   
+</mapper>

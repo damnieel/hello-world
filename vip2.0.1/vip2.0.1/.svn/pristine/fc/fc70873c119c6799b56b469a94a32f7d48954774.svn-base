@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="../config/ehcache.xsd">
+	<diskStore path="D:/ehcache" />
+	<!-- DefaultCache setting. -->
+	<defaultCache maxElementsInMemory="1000" eternal="false"
+		timeToIdleSeconds="300" timeToLiveSeconds="600" maxElementsOnDisk="3000"
+		overflowToDisk="true" memoryStoreEvictionPolicy="LRU">
+
+	</defaultCache>
+
+	<!-- Special objects setting. -->
+
+	<cache name="AuthForOrgProfessional" maxEntriesLocalHeap="30"/>
+	
+	<cache name="ConvertAuthToJSONArray" maxEntriesLocalHeap="30"/>
+	<!-- 缓存左边菜单栏  大枫 20160111 -->
+	<cache name="GetMainMenu" maxEntriesLocalHeap="30" timeToLiveSeconds="6000"/>
+	
+	<cache name="GetSubMenu" maxEntriesLocalHeap="30" timeToLiveSeconds="6000"/>
+	
+	<cache name="GetAllSubMenu" maxEntriesLocalHeap="30" eternal="true" />
+	<!-- 权限标签，权限查询缓存 大枫20160128 -->
+	<cache name="SelectDataActByEmpId" maxEntriesLocalHeap="30" eternal="true" />
+	<!-- 获取组织机构子机构 -->
+	<cache name="GetChildList" maxEntriesLocalHeap="30"/>
+	
+	<!-- 缓存机构信息 -->
+	<cache name="GetAllOrganization" maxEntriesLocalHeap="2" timeToLiveSeconds="0"></cache>
+	
+	
+	<!-- 缓存子机构信息 -->
+	<cache name="GetChildOrgList" maxEntriesLocalHeap="30" ></cache>
+	
+	<!-- 缓存幅机构信息 -->
+	<cache name="GetParentOrgList" maxEntriesLocalHeap="30" ></cache>
+	
+	<!-- 顶级结构节点ID缓存 -->
+	<cache name="FindTopNodeId" maxElementsInMemory="1" eternal="true" overflowToDisk="false" memoryStoreEvictionPolicy="FIFO" ></cache>
+</ehcache>

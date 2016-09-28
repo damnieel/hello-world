@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.inspect.InspectRptMapper" >
+    <delete id="deleteWeeklyReport">
+	    DELETE FROM vip_inspect_week
+		 WHERE inspect_year = YEAR(#{yearWeek,jdbcType=DATE})
+			   AND inspect_week = WEEKOFYEAR(#{yearWeek,jdbcType=DATE})
+               <if test="orgId != 0">
+               AND find_in_set(class_id,getChildList(#{orgId,jdbcType=INTEGER})) > 0 
+               </if>	               
+	</delete>
+	
+	<delete id="deleteMonthlyReport">
+	    DELETE FROM vip_inspect_month
+		 WHERE inspect_year = YEAR(#{yearMonth,jdbcType=DATE})
+			   AND inspect_month = MONTH(#{yearMonth,jdbcType=DATE})
+               <if test="orgId != 0">
+               AND find_in_set(class_id,getChildList(#{orgId,jdbcType=INTEGER})) > 0 
+               </if>	 
+	</delete>
+	
+	<delete id="deleteYearlyReport">
+		DELETE FROM vip_inspect_year
+		 WHERE inspect_year = YEAR(#{year,jdbcType=DATE})
+               <if test="orgId != 0">
+               AND find_in_set(class_id,getChildList(#{orgId,jdbcType=INTEGER})) > 0 
+               </if>
+	</delete>
+	
+	
+	<insert id="insertWeeklyReport">
+	    INSERT INTO vip_inspect_week( profession_id, class_id, inspect_year, inspect_week, attendance_number, absence_number, leave_number, create_time)
+		  SELECT profession_id,class_id,YEAR(inspect_date),WEEKOFYEAR(inspect_date),sum(atten.attendnum ),sum(atten.absentnum),sum(atten.leavesnum ) , now()
+					  
+                       FROM vip_student_class stc
+                       JOIN(
+                       SELECT class_id,student_id,profession_id,inspect_date, 
+					   CASE WHEN inspect_status = 1 THEN 1 ELSE 0 END attendnum,
+					   CASE WHEN inspect_status = 0 THEN 1 ELSE 0 END absentnum,
+					   CASE WHEN inspect_status = 2 THEN 1 ELSE 0 END leavesnum
+					   FROM vip_inspect_detail 
+					   WHERE inspect_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+		                  AND inspect_date  <![CDATA[<]]> #{endDate,jdbcType=DATE} AND is_valid = 'Y'
+		                 <if test="orgId != 0">
+                          AND find_in_set(class_id,getChildList(#{orgId,jdbcType=INTEGER})) > 0
+                         </if>
+                       ) atten on stc.op_cla_id = atten.class_id and stc.student_id = atten.student_id 
+                       group by profession_id ,atten.class_id,YEAR(inspect_date),WEEKOFYEAR(inspect_date)
+	</insert>
+	
+	<insert id="insertMonthlyReport">
+	    INSERT INTO vip_inspect_month(profession_id, class_id, inspect_year, inspect_month, attendance_number, absence_number, leave_number, create_time)
+				  SELECT profession_id,class_id,YEAR(inspect_date),MONTH(inspect_date),sum(atten.attendnum ),sum(atten.absentnum),sum(atten.leavesnum ) , now()
+					  
+                       FROM vip_student_class stc
+                       JOIN(
+                       SELECT class_id,student_id,profession_id,inspect_date, 
+					   CASE WHEN inspect_status = 1 THEN 1 ELSE 0 END attendnum,
+					   CASE WHEN inspect_status = 0 THEN 1 ELSE 0 END absentnum,
+					   CASE WHEN inspect_status = 2 THEN 1 ELSE 0 END leavesnum
+					   FROM vip_inspect_detail 
+					   WHERE inspect_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+		                  AND inspect_date  <![CDATA[<]]> #{endDate,jdbcType=DATE} AND is_valid = 'Y'
+		                 <if test="orgId != 0">
+                          AND find_in_set(class_id,getChildList(#{orgId,jdbcType=INTEGER})) > 0
+                         </if>
+                       ) atten on stc.op_cla_id = atten.class_id and stc.student_id = atten.student_id 
+                       group by profession_id ,atten.class_id,YEAR(inspect_date),MONTH(inspect_date)
+	</insert>
+	
+	<insert id="insertYearlyReport">
+	    INSERT INTO vip_inspect_year(profession_id, class_id, inspect_year, attendance_number, absence_number, leave_number, create_time)
+	    SELECT profession_id,class_id,inspect_year, SUM(attendance_number), SUM(absence_number),SUM(leave_number), now()
+	      FROM vip_inspect_month
+	     WHERE inspect_year = #{year,jdbcType=VARCHAR}
+	     	   <if test="orgId != 0">
+               AND find_in_set(class_id,getChildList(#{orgId,jdbcType=INTEGER})) > 0
+               </if>
+	     GROUP BY profession_id,class_id,inspect_year
+	</insert>
+	
+	<select id = "getWeeklyReport" resultType="com.moon.vip.infra.vo.attendance.AttendNumsVO">
+	
+	  SELECT 
+	   sum(attendance_number)as attendanceSums , sum(absence_number) as absenceSums,sum(leave_number)  as leaveSums
+     FROM 
+       vip_inspect_week  
+     WHERE  
+        find_in_set(class_id,getChildList(#{organizationId,jdbcType=INTEGER})) > 0
+        AND inspect_year = YEAR(#{week,jdbcType=DATE})
+        AND inspect_week = WEEKOFYEAR(#{week,jdbcType=DATE})
+	    <if test="opClaIds != null">
+			    and class_id in
+			<!--      (
+				            select id 
+						   from vip_organizational_professional 
+						  where id in -->
+						  <foreach collection="opClaIds" item="Id" index="index"
+           					 open="(" close=")" separator=","> 
+           					  #{Id}
+   		                  </foreach>
+						<!--   and  FIND_IN_SET(class_id, getChildList(id)) > 0) -->
+	   </if>
+	</select>
+	
+	<select id = "getMonthlyReport" resultType="com.moon.vip.infra.vo.attendance.AttendNumsVO">
+	 SELECT 
+	   sum(attendance_number)as attendanceSums , sum(absence_number) as absenceSums,sum(leave_number)  as leaveSums
+     FROM 
+       vip_inspect_month  
+     WHERE  
+        find_in_set(class_id,getChildList(#{organizationId,jdbcType=INTEGER})) > 0
+        AND inspect_year = YEAR(#{yearMonth,jdbcType=DATE})
+        AND inspect_month = MONTH(#{yearMonth,jdbcType=DATE})
+	    <if test="opClaIds != null">
+			    and class_id in
+			<!--      (
+				            select id 
+						   from vip_organizational_professional 
+						  where id in -->
+						  <foreach collection="opClaIds" item="Id" index="index"
+           					 open="(" close=")" separator=","> 
+           					  #{Id}
+   		                  </foreach>
+						<!--   and  FIND_IN_SET(class_id, getChildList(id)) > 0) -->
+	   </if>
+	</select>
+	
+	<select id = "getYearlyReport" resultType="com.moon.vip.infra.vo.attendance.AttendNumsVO">
+     SELECT 
+	   sum(attendance_number)as attendanceSums , sum(absence_number) as absenceSums,sum(leave_number)  as leaveSums
+     FROM 
+       vip_inspect_year  
+     WHERE  
+        find_in_set(class_id,getChildList(#{organizationId,jdbcType=INTEGER})) > 0
+        AND inspect_year = YEAR(#{year,jdbcType=DATE})
+	    <if test="opClaIds != null">
+			    and class_id in
+			<!--      (
+				            select id 
+						   from vip_organizational_professional 
+						  where id in -->
+						  <foreach collection="opClaIds" item="Id" index="index"
+           					 open="(" close=")" separator=","> 
+           					  #{Id}
+   		                  </foreach>
+						<!--   and  FIND_IN_SET(class_id, getChildList(id)) > 0) -->
+	   </if>
+	
+	</select>
+</mapper>

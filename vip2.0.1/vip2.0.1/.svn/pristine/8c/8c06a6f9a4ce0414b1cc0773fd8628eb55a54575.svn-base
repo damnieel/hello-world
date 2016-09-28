@@ -1,0 +1,57 @@
+<%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ include file="/WEB-INF/common/taglib.jsp"%>
+<%@page isELIgnored="false"%>
+
+<tr>
+	<th width="80">序号</th>
+	<th>学员姓名</th>
+	<th>手机</th>
+	<th>QQ</th>
+	<th>状态</th>
+	<th>官网账号(电商账号)</th>
+	<th>操作</th>
+</tr>
+<c:if test="${fn:length(list) == 0}">
+	<tr>
+		<td colspan="14">暂无数据</td>
+	</tr>
+</c:if>
+<c:forEach items="${list}" var="list" varStatus="status">
+	<tr>
+		<td>${status.count}</td>
+		<td>${list.name}</td>
+		<td>${list.telephone}</td>
+		<td>${list.qq}</td>
+		<c:if test="${list.authStatus == 'N'}">
+			<td>未授权</td>
+			<td>--</td>
+			<td><a class="again_btn bg_blue marl_20 authStu"
+				stuid="${list.id}" href="javascript:void(0)">授权</a></td>
+		</c:if>
+		<c:if test="${list.authStatus == 'Y'}">
+			<td>已授权</td>
+			<td>${list.account}</td>
+			<td><a class="again_btn bg_blue marl_20 cancelauthStu"
+				stuid="${list.id}" href="javascript:void(0)">取消授权</a></td>
+		</c:if>
+	
+	<%-- 	<c:if test="${list.authStatus == 'N'}">
+			<td><a class="again_btn bg_blue marl_20 authStu"
+				stuid="${list.id}" href="javascript:void(0)">授权</a></td>
+		</c:if>
+		<c:if test="${list.authStatus == 'Y'}">
+			<td><a class="again_btn bg_blue marl_20 cancelauthStu"
+				stuid="${list.id}" href="javascript:void(0)">取消授权</a></td>
+		</c:if> --%>
+	</tr>
+</c:forEach>
+
+
+
+<script type="text/javascript"
+	src="${basePath}resources/js/sys/authManage/authDetail.js"></script>
+
+
+
+
+

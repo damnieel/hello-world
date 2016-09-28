@@ -1,0 +1,10 @@
+
+network_timeout = 20
+charset = ISO8859-1
+http.tracker_http_port = 80900
+http.anti_steal_token = yes
+http.secret_key = FastDFS1234567890
+
+load_balance_strategy = RR
+tracker_server = 112.74.133.189:5101
+storage_server = 112.74.133.189:960

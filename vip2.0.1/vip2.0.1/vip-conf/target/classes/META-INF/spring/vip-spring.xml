@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+			http://www.springframework.org/schema/beans/spring-beans-4.1.xsd
+			http://www.springframework.org/schema/context
+			http://www.springframework.org/schema/context/spring-context-4.1.xsd
+			http://www.springframework.org/schema/cache  
+			http://www.springframework.org/schema/cache/spring-cache.xsd 
+			http://www.springframework.org/schema/aop 
+			http://www.springframework.org/schema/aop/spring-aop-4.1.xsd 
+			">
+
+	<!-- 加载配置文件 -->
+<!-- 	<context:property-placeholder
+		location="classpath:META-INF/properties/config.properties" /> -->
+	 <!-- webSocket配置类   by Chenhai -->
+	 <bean id="webSocketConfig" class="com.moon.socket.WebSocketConfig"
+		init-method="init">
+		<property name="socketConfig">
+			<value>classpath:socket/socket.properties</value>
+		</property>
+	 </bean> 
+	 
+	<bean id= "singleSignOn" class="com.moon.client.sso.SingleSingOn" init-method="init">
+		<property name="isFormal" value="${sso.client.isformal}" />
+	</bean>	
+	 <bean id="ConnContext" class="com.moon.service.context.BdConnPool" init-method="onload" />
+	 <bean id="baseDateClient" class="com.moon.vip.service.impl.sys.authManage.BaseDateClient" />	
+	<!-- 扫描service自动注入为bean -->
+	<context:component-scan base-package="com.moon.vip">
+		<context:include-filter type="regex" expression=".*.impl"/>
+		<context:include-filter type="regex" expression=".*.aop"/>
+	</context:component-scan>
+	<aop:aspectj-autoproxy/>
+	
+	<!-- dsf文件上传配置  xiangui -->
+	 <bean id="dfsStoreProcess" class="com.moon.commons.external.dfs.DfsStoreProcess"
+		init-method="init">
+		<property name="configPath">
+			<value>classpath:dfs/fdfs_client.conf</value>
+		</property>
+	</bean>   
+ 
+	<!-- 支持上传文件 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+	<bean id="cacheManagerFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+		<property name="configLocation" value="classpath:ehcache.xml"></property>
+	</bean>
+	<!-- 缓存配置 -->
+	<!-- 启用缓存注解功能 by cGod -->
+	<cache:annotation-driven cache-manager="cacheManager" />
+	
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">    
+        <property name="cacheManager"  ref="cacheManagerFactory"/>    
+    </bean>
+	 
+</beans>

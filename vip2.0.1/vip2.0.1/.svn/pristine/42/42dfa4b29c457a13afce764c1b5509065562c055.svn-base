@@ -1,0 +1,277 @@
+package com.moon.vip.controller.questionnaire;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.moon.vip.controller.BaseController;
+import com.moon.vip.controller.uploadStudentData.UploadFileUtil;
+import com.moon.vip.infra.vo.EmployeeLoginVO;
+import com.moon.vip.infra.vo.questionnaire.EmployeeVO;
+import com.moon.vip.infra.vo.questionnaire.QuestionnaireVO;
+import com.moon.vip.service.questionnaire.IQuestionnaireService;
+import com.moon.vip.service.student.IStudentArchivesService;
+
+
+@Controller
+@RequestMapping("/questionnaire/questionnaire")
+public class QuestionnaireController extends BaseController{
+	@Autowired
+	private IQuestionnaireService iQuestionnaireService;
+	
+	@Autowired
+	private IStudentArchivesService iStudentArchivesService;
+	
+	@Autowired	
+	private UploadFileUtil upload;
+	
+	private static Logger logger = Logger.getLogger(QuestionnaireController.class);
+	
+	/**
+	 * 问卷调查页面BR>
+	 * 方法名：questionnaireList<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2015年12月25日-下午4:53:17 <BR>
+	 * @return ModelAndView<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping("/questionnaireList")
+	public ModelAndView questionnaireList(){
+		ModelAndView mv = new ModelAndView();
+		mv.setViewName("/page/questionnaire/questionnaireList");
+		return mv;
+	}
+	
+	
+	/**
+	 * 问卷调查模板<BR>
+	 * 方法名：questionnaireTemplate<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2015年12月25日-下午4:54:10 <BR>
+	 * @return ModelAndView<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value="/questionnaireTemplate")
+	public ModelAndView questionnaireTemplate(QuestionnaireVO questionnaireVO){
+		ModelAndView mv = new ModelAndView();
+		questionnaireVO.setOpClaIds(achieveAuth());
+		List<QuestionnaireVO> list = new ArrayList<QuestionnaireVO>();
+		List<QuestionnaireVO> questionnaire = iQuestionnaireService.selectByRoleDate(questionnaireVO);
+		for (QuestionnaireVO questionnaireVO2 : questionnaire) {
+			List<QuestionnaireVO> vo = iQuestionnaireService.selectCourseNameByID(questionnaireVO2.getProId());
+		    if(vo == null){
+		    	continue;
+		    }
+		    for (QuestionnaireVO questionnaireVO3 : vo) {
+		    	questionnaireVO2.setCourseName(questionnaireVO3.getCourseName());
+			}
+			list.add(questionnaireVO2);
+		}
+		int count =iQuestionnaireService.selectCount(questionnaireVO);
+		mv.addObject("count", count);
+		mv.addObject("list", list);
+		mv.setViewName("/page/questionnaire/questionnaireTemplate");
+		return mv;
+	}
+	
+	@RequestMapping("/questionnaireTemplateCount")
+	@ResponseBody
+	private int questionnaireTemplateCount(QuestionnaireVO questionnaireVO) {
+		questionnaireVO.setOpClaIds(achieveAuth());
+		return iQuestionnaireService.selectCount(questionnaireVO);
+	}
+	
+	/**
+	 * 问卷调查统计总数<BR>
+	 * 方法名：getCount<BR>
+	 * 创建人：张烜久 <BR>
+	 * 时间：2016-7-4 14:14:26 <BR>
+	 * @return HashMap<String, Object><BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping("/getCount")
+	@ResponseBody
+	private HashMap<String, Object> getCount(QuestionnaireVO questionnaireVO) {
+		questionnaireVO.setOpClaIds(achieveAuth());
+		HashMap<String, Object> result = new HashMap<String, Object>();
+		int count = iQuestionnaireService.selectCount(questionnaireVO);
+		result.put("count", count);
+		return result;
+	}
+	
+	/**
+	 * 查看问卷详情<BR>
+	 * 方法名：questionnaireCkeck<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2016年1月6日-下午9:21:44 <BR>
+	 * @param id
+	 * @return ModelAndView<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value="/questionnaireCkeck/{id}")
+	public ModelAndView questionnaireCkeck(@PathVariable("id")Integer id){
+		ModelAndView mv = new  ModelAndView();
+		QuestionnaireVO questionnaireVO = iQuestionnaireService.questionnaireDetail(id);
+		String a =questionnaireVO.getOpProIds();
+		String[] b =a.split("-");
+		typeName(questionnaireVO, b);
+		mv.addObject("questionnaire", questionnaireVO);
+		mv.setViewName("/page/questionnaire/questionnaireCkeck");
+		return mv;
+	}
+
+	/***获取职能名称***/
+	private void typeName(QuestionnaireVO questionnaireVO, String[] b) {
+		List<QuestionnaireVO> courseVOs = iQuestionnaireService.selectCluster(Integer.valueOf(b[0]));
+		for (QuestionnaireVO questionnaireVO2 : courseVOs) {
+			questionnaireVO.setCourseName(questionnaireVO2.getcName());/**集群**/
+		}
+		List<QuestionnaireVO> courseVO = iQuestionnaireService.selectDepartment(Integer.valueOf(b[1]));
+		for (QuestionnaireVO questionnaireVO2 : courseVO) {
+			questionnaireVO.setKeyword(questionnaireVO2.getdName());/***部门**/
+		}
+		List<QuestionnaireVO> co= iQuestionnaireService.selectCourseNameByID(Integer.valueOf(b[2]));
+		for (QuestionnaireVO questionnaireVO2 : co) {
+			questionnaireVO.setEmployeeCode(questionnaireVO2.getCourseName());/**专业***/
+		}
+	}
+
+	/**
+	 * 跳转到修改问卷页面<BR>
+	 * 方法名：questionnaireAdd<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2016年1月6日-下午6:54:16 <BR>
+	 * @return ModelAndView<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value = "/questionnaireAdd/{statues}/{pro}")
+	public ModelAndView questionnaireAdd(@PathVariable("statues")Integer statues,@PathVariable("pro")String pro,Integer id){
+		ModelAndView mv = new ModelAndView();
+		List<QuestionnaireVO> cluster = iQuestionnaireService.selectCluster(id);/***集群***/
+		List<QuestionnaireVO> department = iQuestionnaireService.selectDepartment(id);/***部门***/
+		List<QuestionnaireVO> courseName = iQuestionnaireService.selectCourseNameByID(id);
+		if(statues != 1 && !"ok".equals(pro)){
+		   QuestionnaireVO vo = iQuestionnaireService.questionnaireDetail(statues);
+		   String s=vo.getOpProIds();
+		   String[] ids = pro.split("-");
+		   List<QuestionnaireVO> aa = iQuestionnaireService.selectCluster(Integer.valueOf(ids[0]));/***集群***/
+		   for (QuestionnaireVO questionnaireVO : aa) {
+			   vo.setcName(questionnaireVO.getcName());
+		   }
+		   List<QuestionnaireVO> bb = iQuestionnaireService.selectDepartment(Integer.valueOf(ids[1]));/***部门***/
+		   for (QuestionnaireVO questionnaireVO : bb) {
+			   vo.setdName(questionnaireVO.getdName());
+		   }
+		   String[]  ss = s.split("-");
+		   vo.setCid(Integer.valueOf(ss[0]));
+		   vo.setDeid(Integer.valueOf(ss[1]));
+		   mv.addObject("questionnaire", vo);
+		}
+		   mv.addObject("cluster", cluster);
+		   mv.addObject("department", department);
+		   mv.addObject("courseName", courseName);
+		   mv.setViewName("/page/questionnaire/questionnaireAdd");
+		   return mv;
+	}
+	
+	/***问卷添加跳转页面***/
+	@RequestMapping(value = "/questionnaireAdds")
+	public ModelAndView questionnaireAdds(Integer id){
+		ModelAndView mv = new ModelAndView();
+		List<QuestionnaireVO> cluster = iQuestionnaireService.selectCluster(id);/***集群***/
+		List<QuestionnaireVO> department = iQuestionnaireService.selectDepartment(id);/***部门***/
+		List<QuestionnaireVO> courseName = iQuestionnaireService.selectCourseNameByID(id);
+		mv.addObject("cluster", cluster);
+		mv.addObject("department", department);
+		mv.addObject("courseName", courseName);
+		mv.setViewName("/page/questionnaire/questionnaireAdd");
+		return mv;
+	}
+	
+	
+	/**
+	 * 添加问卷记录<BR>
+	 * 方法名：insertByRoleDate<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2015年12月25日-下午4:56:51 <BR>
+	 * @return int<BR>
+	 * @throws Exception 
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value = "/insertByRoleDate",method = { RequestMethod.POST, RequestMethod.GET })
+	@ResponseBody
+	public String insertByRoleDate(QuestionnaireVO questionnaireVO,HttpSession session,HttpServletRequest request) throws Exception{
+		EmployeeLoginVO employee = (EmployeeLoginVO) session.getAttribute("employee");
+		/**获取文件的地址**/
+		HashMap<String, String> result = upload.upload(request, null, "file");
+		String url = result.get("urls");
+		/** 获取文件名 **/
+		String fileName = result.get("fileName");
+		questionnaireVO.setAnnexAddress(url);
+		questionnaireVO.setAnnexName(fileName);
+		questionnaireVO.setOpProIds(questionnaireVO.getCid()+"-"+questionnaireVO.getDeid()+"-"+questionnaireVO.getProId());
+        EmployeeVO employeeVO = iQuestionnaireService.selectByNikeName(questionnaireVO.getNickName());
+        if(employeeVO != null){
+        	questionnaireVO.setTecherCode(employeeVO.getEmployeeCode());
+        	if(questionnaireVO.getId() != null){
+        		logger.info("修改问卷调查记录人的工号："+employee.getEmployeeCode()+",修改时间："+new Date());
+        		questionnaireVO.setModifyTime(new Date());
+        		questionnaireVO.setModifyUser(employee.getEmployeeCode());
+        		int statue = iQuestionnaireService.updateByRoleDate(questionnaireVO);
+    			if(statue>0){
+    				return "updateSuccess";
+    			}
+    			return "updateFail";
+        	}else{
+        		questionnaireVO.setCreateTime(new Date());
+        		questionnaireVO.setCreator(employee.getEmployeeCode());
+    			int	i = iQuestionnaireService.insertByRoleDate(questionnaireVO);
+    			if(i>0){
+    				return "success";
+    			}
+    			return "falls";
+        	}
+        }
+		return "fail";
+	}
+	
+	/**
+	 * 删除问卷呢调查记录<BR>
+	 * 方法名：deleteQuestionnaire<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2015年12月25日-下午4:57:13 <BR>
+	 * @return int<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value ="/deleteQuestionnaire/{id}", method = RequestMethod.POST)
+	@ResponseBody
+	public String deleteQuestionnaire(Integer id,HttpSession session){
+		EmployeeLoginVO employee = (EmployeeLoginVO) session.getAttribute("employee");
+		logger.info("删除问卷调查记录人工号："+employee.getEmployeeCode()+",删除时间："+new Date());
+		int  i = iQuestionnaireService.deleteQuestionnaire(id);
+		if(i>0){
+			return "success";
+		}
+		return "fail"; 
+	}
+}

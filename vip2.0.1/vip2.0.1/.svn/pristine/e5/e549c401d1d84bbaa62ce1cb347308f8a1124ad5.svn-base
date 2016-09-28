@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.DataStatisticMapper" >
+
+  <!-- 访谈记录状态统计 -->
+ <select id="selectComponentStatistic" resultType="com.moon.vip.infra.vo.sys.ComponentVO" >
+select sum(student) AS  student,sum(worker) AS  worker,sum(unemployee) AS  unemployee,sum(other) AS other,sum(student)+sum(worker)+sum(unemployee)+sum(other) componentRecord  
+from (
+				select stu.id,
+							 case when  component_code = 's' then 1 else 0 end student,
+							 case when  component_code = 'w' then 1 else 0 end worker,
+							 case when  component_code = 'u' then 1 else 0 end unemployee,
+							 case when  component_code = 'o' then 1 else 0 end other
+				from  vip_student_archives stu
+				where  exists (
+							  select v.student_id
+								from (SELECT cls.id clsId,dep.id depId,pro.id proId,cls.`name`,cls.is_valid
+										FROM vip_organizational_professional cls 
+											 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y' and dep.type in('org','pro'))
+											 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y' and pro.type = 'pro')
+											 
+									   WHERE cls.is_valid = 'Y'  
+											
+											<if test="param.orgProCalId == 0 or param.orgProCalId == 1">
+							    				 AND cls.partent_id = 1
+							     			</if> 
+							    			<if test="param.orgProCalId != 0 and param.orgProCalId != 1">
+							     				AND cls.id = #{param.orgProCalId,jdbcType=INTEGER}
+							     		    </if>
+											
+									  ) s
+									  LEFT JOIN vip_interviews v on (s.clsId = v.op_pro_id or s.depId = v.op_pro_id or s.proId = v.op_pro_id )
+								where s.is_valid='Y'
+									 <if test="param.startDate != null and param.endDate != null">
+								      AND v.create_time <![CDATA[>=]]> #{param.startDate,jdbcType=DATE}
+									  AND v.create_time <![CDATA[<=]]> #{param.endDate,jdbcType=DATE}
+									 </if> 
+									  
+									  <if test="param.opClaIds != null">
+										 AND 
+											  v.op_pro_id  in 
+											  <foreach collection="param.opClaIds" item="Id" index="index"
+												 open="(" close=")" separator=","> 
+												 #{Id}
+											  </foreach>
+									  </if> 
+									  AND stu.id = v.student_id
+							  )
+) b	
+
+	
+ </select> 
+ 
+  <!-- 访谈记录学习目的统计 -->
+ <select id="selectLearnAimStatistic" resultType="com.moon.vip.infra.vo.sys.LearningAimVO" >
+select sum(makingMoney) AS  makingMoney,sum(workNeed) AS  workNeed,sum(carveOut) AS  carveOut,sum(interesting) AS interesting,sum(other) AS other,sum(makingMoney)+sum(workNeed)+sum(carveOut)+sum(interesting)+sum(other) learningRecord	,b.orgName orgName,b.clsName clsName
+	from(				SELECT v.id,s.orgName,s.clsName,
+								 case when  learn_aim_code = 1 then 1 else 0 end makingMoney,
+								 case when  learn_aim_code = 2 then 1 else 0 end workNeed,
+								 case when  learn_aim_code = 3 then 1 else 0 end carveOut,
+								 case when  learn_aim_code = 4 then 1 else 0 end interesting,
+								 case when  learn_aim_code = 5 then 1 else 0 end other
+					FROM (SELECT cls.id clsId,dep.id depId,pro.id proId,cls.`name` clsName,cls.is_valid,org.`name` orgName
+																		FROM vip_organizational_professional cls 
+																			 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y' and dep.type in('org','pro'))
+																			 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y' and pro.type = 'pro')
+																			 
+																			 LEFT JOIN vip_organizational_professional org on  ( cls.partent_id=org.ID AND org.is_valid = 'Y')
+																		 WHERE cls.is_valid = 'Y'  
+																		 
+																			<if test="param.orgProCalId == 0 or param.orgProCalId == 1">
+							    												 AND cls.partent_id = 1
+							     											</if> 
+							    											<if test="param.orgProCalId != 0 and param.orgProCalId != 1">
+							     													AND cls.id = #{param.orgProCalId,jdbcType=INTEGER}
+							     		    								</if> 
+					)s LEFT JOIN vip_interviews v on (s.clsId = v.op_pro_id or s.depId = v.op_pro_id or s.proId = v.op_pro_id )
+					where s.is_valid='Y'
+						<if test="param.startDate != null and param.endDate != null">
+					 	 AND v.create_time <![CDATA[>=]]> #{param.startDate,jdbcType=DATE}
+					 	 AND v.create_time <![CDATA[<=]]> #{param.endDate,jdbcType=DATE}
+					 	</if>  
+									<if test="param.opClaIds != null">
+										 AND 
+											  v.op_pro_id  in 
+											  <foreach collection="param.opClaIds" item="Id" index="index"
+												 open="(" close=")" separator=","> 
+												 #{Id}
+											  </foreach>
+									</if> 
+									)b
+				
+ </select>
+ 
+ 
+  
+  <!-- 问卷调查统计 -->
+<select id="selectQuestionStatistic" resultType="com.moon.vip.infra.vo.questionnaire.QstStatisticVO" >
+SELECT q.id,q.pro_id orgId,ROUND(sum(q.excellent)/count(*),2) excellent,ROUND(sum(q.good)/count(*),2) good,ROUND(sum(q.`medium`)/count(*),2) medium,ROUND(sum(q.bad)/count(*),2) bad,s.`name` orgName
+FROM (
+					SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId,cls.is_valid
+					FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y' and dep.type in('org','pro') )
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y' and pro.type = 'pro')
+				   WHERE cls.is_valid = 'Y' 
+				         AND cls.partent_id = if(#{param.orgProCalId,jdbcType=INTEGER} = 0, 1,#{param.orgProCalId,jdbcType=INTEGER} ) 					 
+					 ) s 
+JOIN vip_questionnaire q on (s.clsId=q.pro_id OR s.depId=q.pro_id OR s.proId=q.pro_id )
+WHERE s.is_valid='Y'
+<if test="param.startDate != null and param.endDate != null">
+AND q.investigations_date <![CDATA[>=]]> #{param.startDate,jdbcType=DATE}
+AND q.investigations_date <![CDATA[<=]]> #{param.endDate,jdbcType=DATE}
+</if>
+<if test="param.opClaIds != null">
+ AND 
+	  q.pro_id  in 
+	  <foreach collection="param.opClaIds" item="Id" index="index"
+		 open="(" close=")" separator=","> 
+		 #{Id}
+	  </foreach>
+</if> 
+GROUP BY s.clsId,s.`name`
+ </select>
+</mapper>

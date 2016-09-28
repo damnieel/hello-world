@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Strict//EN">
+<%@ page language="java" pageEncoding="UTF-8"%>
+ <html lang="en">
+<head>
+<meta name="Generator" content="EditPlus">
+<meta name="Author" content="">
+<meta name="Keywords" content="">	
+<meta name="Description" content="">
+<meta http-equiv="X-UA-Compatible" content="chrome=1;IE=Edge;">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<%@include file="/WEB-INF/common/commonResource.jsp" %>
+<script type="text/javascript" src="${basePath}/resources/js/My97DatePicker/WdatePicker.js"></script>
+<title>问卷管理_问卷调查页面</title>
+</head>
+<body>
+	<%@include file="/WEB-INF/views/page/sys/left.jsp" %>	
+	<div class="main_right">	
+		<%@include file="/WEB-INF/views/page/sys/top.jsp" %>
+     <form id="questionnaireForm"  action="${basePath}questionnaire/questionnaire/insertByRoleDate.htmls" enctype="multipart/form-data">
+     <div class="main_con">
+         <div class="marb_14">
+             <div class="table_record">
+             <table width="100%">
+             <tr>
+             <%--  <div class="search_condition marb_14 clearfix" style="margin-left:50px;">
+               <jsp:include page="/WEB-INF/views/page/sys/comboBox.jsp" >
+					<jsp:param name="size" value="3" />
+			  </jsp:include>
+			  </div> --%>
+		  <div class="search_condition marb_14 clearfix" style="margin-left:50px;">
+			 <div class="fl" id="element_id">
+	              <div class="marl_20 fl">根据职能：</div>
+	              <select class="cluster  bdr"></select>
+	 			  <select class="part  bdr"></select>
+	 			  <select class="professional  bdr"></select>
+             </div>
+             </div> 
+             </tr>
+             <tr>
+             <td width="140" align="right"><b>讲师：</b></td>
+             <td><input type="text" class="edit_box boxbor" id="nickName" value="${questionnaire.nickName}"></td>
+             </tr>
+             <tr>
+             <td width="140" align="right"><b>调查学员数：</b></td>
+             <td><input type="text" class="edit_box boxbor" id="investigationsNumber"  value="${questionnaire.investigationsNumber}" autocomplete="off" onkeyup="this.value=this.value.replace(/\D/g,'')" onafterpaste="this.value=this.value.replace(/\D/g,'')"></td>
+             <td width="140" align="right"><b>调查日期：</b></td>
+             <td width="196">
+                <div class="data_box" style="width:196px;">
+                     <input type="text" class="text_box boxbor" id="investigationsDate" value=" <fmt:formatDate value='${questionnaire.investigationsDate}' type="date" />" style="margin-left:0px; width:190px;" readonly="readonly"  onClick="WdatePicker({dateFmt:'yyyy-MM-dd',maxDate:'new Data'})"  placeholder="调查时间">
+                     <i class="main_icon data_img"></i>
+                </div>
+             </td>
+             </tr>
+             <tr>
+             <td width="140" align="right"><b>评优比例：</b></td>
+             <td width="196">
+                 <div class="data_box" style="width:196px;">
+                      <input type="text" class="edit_box boxbor" id="excellent" value="${questionnaire.excellent}" autocomplete="off"  placeholder="请输入纯数字比例大小 ">
+                      <i class="data_img" style="top:0px;">%</i>
+                 </div>
+             </td>
+             <td width="140" align="right"><b>评良比例：</b></td>
+             <td width="196">
+                 <div class="data_box" style="width:196px;">
+                      <input type="text" class="edit_box boxbor" id="good" value="${questionnaire.good}" autocomplete="off" placeholder="请输入纯数字比例大小 ">
+                      <i class="data_img" style="top:0px;">%</i>
+                 </div> 
+             </td>
+             </tr>
+             <tr>
+             <td width="140" align="right"><b>评中比例：</b></td>
+             <td width="196">
+                  <div class="data_box" style="width:196px;">
+                      <input type="text" class="edit_box boxbor" id="medium" value="${questionnaire.medium}" autocomplete="off"  placeholder="请输入纯数字比例大小 ">
+                      <i class="data_img" style="top:0px;">%</i>
+                  </div>
+             </td>
+             <td width="140" align="right"><b>评差比例：</b></td>
+             <td width="196">
+                  <div class="data_box" style="width:196px;">
+                      <input type="text" class="edit_box boxbor" id="bad" value="${questionnaire.bad}" autocomplete="off" placeholder="请输入纯数字比例大小 ">
+                      <i class="data_img" style="top:0px;">%</i>
+                  </div>
+             </td>
+             </tr>
+             <script type ="text/javascript">
+             /*   $(function(){
+	                var ques = "${questionnaire.question}";
+	                var solu = "${questionnaire.solution}";
+	                if(ques == ""){
+	                    $("#question").val("");
+	                }
+	                if(solu == ""){
+	                	$("#solution").val("");
+	                }
+               }); */
+             </script>
+             <tr>
+             <td width="140" align="right" valign="top"><b>学员问题：</b></td>
+             <td colspan="3">
+                  <textarea class="textarea_box boxbor"  id = "question" placeholder="1～100字" style="margin-top:0px;">
+                  ${questionnaire.question}
+                  </textarea></td>
+             </tr>
+             <tr>
+             <td width="140" align="right" valign="top"><b>解决措施：</b></td>
+             <td colspan="3">
+                 <textarea class="textarea_box boxbor" placeholder="1～100字" id="solution" style="margin-top:0px;">
+                  ${questionnaire.solution}
+                 </textarea>
+             </td>
+             </tr>
+             <tr>
+             <td width="140" align="right" valign="top"><b> 源文件：</b></td>
+             <td colspan="3">
+                 <c:if test="${empty questionnaire.annexName}">
+                                                 暂无附件
+                 </c:if>
+                 <c:if test="${!empty questionnaire.annexName}">
+                   <a href="${imgBasePath}/${questionnaire.annexAddress}">${questionnaire.annexName}</a>
+                 </c:if>
+             </td>
+            </tr>
+             <tr>
+             <td width="140" align="right" valign="top"><b>附件：</b></td>
+             <td colspan="3">
+                 <input type="file" id="annexAddress" name="fileName" /><span class="color_red"></span>
+             </td>
+             </tr>
+             </table>
+             </div>
+             <div class="mart_14">
+                  <a href="javascript:history.go(-1);" class="add_btn bg_gray">返回</a>
+                     <input type="submit" class="add_btn bg_blue marl_20"  value="保存" style="line-height:0px;">
+                     <input type="text" value="${questionnaire.id}" id="qId" style="display: none;">
+             </div>
+         </div>
+     </div>
+     </form>
+</div>
+
+<script type="text/javascript" src="${basePath}resources/js/jquery.form.js"></script>
+<script type="text/javascript" src="${basePath}resources/js/questionnaire/questionnaireAdd.js"></script>
+<script type="text/javascript">
+var opProIds = "${questionnaire.opProIds}";
+function tzchangeyear(dp){
+    $("#keybirthday").val(dp.cal.getNewDateStr());
+}
+$("#curMenuLableName").after("&gt; <a href='javascript:void(0);'>添加问卷调查信息</a>");
+</script>
+</body>
+</html>

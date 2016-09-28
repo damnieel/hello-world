@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.ProfessionSequenceSqlMapper" >
+	
+	<!-- 查询编号序列号 -->
+	<select id="selectSequence" resultType="com.moon.vip.infra.vo.sys.SequenceVO" parameterType="com.moon.vip.infra.vo.sys.SequenceVO">
+	    SELECT profession_id AS professionId,produce_date AS produceDate,sequence AS sequence 
+        FROM vip_profession_sequence WHERE profession_id =#{professionId ,jdbcType=INTEGER} AND produce_date =#{produceDate ,jdbcType=CHAR};
+	</select>
+	
+	<!-- 更新编号序列号 -->
+	<update id="updateSequence" parameterType="com.moon.vip.infra.vo.sys.SequenceVO">
+	    UPDATE vip_profession_sequence SET sequence = sequence + 1
+	    WHERE profession_id= #{professionId}  AND produce_date =#{produceDate ,jdbcType=CHAR} and sequence = #{sequence ,jdbcType=INTEGER};
+	</update>
+	
+	<!-- 添加编号记录 -->
+	<insert id="insertSequence" parameterType="com.moon.vip.infra.vo.sys.SequenceVO" >
+	    INSERT INTO vip_profession_sequence (profession_id,produce_date,sequence) 
+	    VALUES (#{professionId ,jdbcType=INTEGER},#{produceDate ,jdbcType=CHAR},#{sequence ,jdbcType=INTEGER});
+	</insert>
+	
+</mapper>

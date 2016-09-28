@@ -1,0 +1,264 @@
+@charset "utf-8";
+/* CSS Document */
+
+body{ color:#717171;}
+a{ color:#717171;}
+a:hover{ color:#04b4b3;}
+.main_icon{ background-image:url(../images/main_icon.png); background-repeat:no-repeat;}
+.bg_blue{ background:#04b4b3; color:#fff;}
+.bg_blue:hover{ background:#00bdbc; color:#fff;}
+input:disabled.bg_blue{ background:#bbb; color:#fff;}
+input:disabled.bg_blue:hover{ background:#bbb; color:#fff;}
+.bg_gray{ background:#aaa; color: #fff;}
+.bg_gray:hover{ background:#bbb; color: #fff;}
+.color_red{ color:#ff0000;}
+.color_blue{ color:#04b4b3;}
+.font24{ font-size:24px;}
+.font12{ font-size:12px;}
+.marl_20{ margin-left:20px;}
+.marl_92{ margin-left:92px;}
+.marr_20{ margin-right:20px;}
+.marl_510{ margin-left:510px;}
+.marl_365{ margin-left: 365px;}
+.marb_14{ margin-bottom:14px;}
+.marb_90{ margin-bottom:90px;}
+.mart_14{ margin-top:14px;}
+.padr_20{ padding-right:20px;}
+.wth_100{ width:100px;}
+.wth_158{ width:158px;}
+.wth_212{ width:212px;}
+.wth_244{ width:244px;}
+.wth_298{ width:298px;}
+
+/*登录*/
+.login{ position:absolute; top:40%; left:50%; width:750px; margin-left:-375px; margin-top:-108px;}
+.login_logo{ width:355px; padding-top:40px; float:left;}
+.login_con{ width:300px; border-left:1px solid #aeaeae; padding-left:90px; padding-bottom:20px; float:left;}
+.login_con h3{ width:100%; height:45px; line-height:40px; margin-bottom:8px; text-align:center; font-size:24px; font-weight:normal; color:#515151;}
+.login_con .box{ position:relative; height:38px; line-height:38px; border:1px solid #e2e2e2; background:#fff; border-radius:2px; margin-bottom:16px;}
+.login_con span{ display:block; width:44px; text-align:center; float:left;}
+.login_con i{ display:inline-block; vertical-align:middle;}
+.name_icon{ width:16px; height:19px; background-position:0px 0px;}
+.password_icon{ width:15px; height:19px; background-position:-25px 0px;}
+.yzm_icon{ width:15px; height:20px; background-position:-99px -151px;}
+.login_box{ height:38px; float:left; border:0px; background:#fff;}
+.yzm{ position:absolute; left:220px; top:-2px; width:200px; height:40px;}
+.login_btn{ width:300px; height:40px; line-height:40px; text-align:center; cursor:pointer; border:0px; border-radius:2px;}
+
+/*左边*/
+.main_left{ position:fixed; top:0; left:0; width:185px; height:100%; background:#333c4f; z-index:9;}
+.main_logo{ width:100%; height:83px; background:#04b4b3; text-align:center; padding-top:17px;}
+.nav_list{ width:100%;}
+.nav_list li{ width:100%;}
+.nav_list li.onnav{ background:#232a3a;}
+.nav_list li p{ line-height:58px; font-size:16px; color:#fff; text-indent:40px; cursor:pointer;}
+.nav_list li span{ padding-left:10px;}
+.nav_list li i{ display:inline-block; vertical-align:middle;}
+.stu_icon{ width:20px; height:16px; background-position:-49px 0px;}
+.nav_list li.onnav .stu_icon{ background-position:-71px 0px;}
+.edu_icon{ width:19px; height:19px; background-position:-101px 0px;}
+.nav_list li.onnav .edu_icon{ background-position:-122px 0px;}
+.ques_icon{ width:19px; height:19px; background-position:-151px 0px;}
+.nav_list li.onnav .ques_icon{ background-position:-172px 0px;}
+.data_icon{ width:17px; height:19px; background-position:-201px 0px;}
+.nav_list li.onnav .data_icon{ background-position:-219px 0px;}
+.sys_icon{ width:19px; height:19px; background-position:-245px 0px;}
+.nav_list li.onnav .sys_icon{ background-position:-266px 0px;}
+.down_list{ width:100%; background:#232a3a; padding-bottom:5px; display:none;}
+.down_list li{ height:32px; line-height:32px; margin-bottom:10px; text-indent:68px;}
+.down_list li a{ display:block; height:32px; color:#ccc; border-left:2px solid #232a3a;}
+.down_list li a:hover,.down_list li a.onlistnav{ background:#1a1f2c; border-left:2px solid #04b4b3; color:#04b4b3;}
+
+/*右边*/
+.main_right{ position:relative; margin-left:185px; min-width:1080px;}
+.right_top{ position:fixed; top:0; right:0; height:60px; line-height:60px; width:100%; background:#eaeaea; z-index:8; box-shadow: 0 0 6px rgba(0,0,0,0.4);}
+.right_top span{ display:inline-block; padding-right:25px; font-size:16px;}
+.right_top i{ display:inline-block; margin-right:5px; vertical-align:middle;}
+.right_top a{ display:inline-block; width:19px; height:19px; background-position:-59px -29px; margin-right:50px; vertical-align:middle;}
+.user_name{ width:16px; height:19px; background-position:0px -29px;}
+.duty{ width:19px; height:19px; background-position:-30px -29px;}
+.location{ float:left; height:24px; line-height:24px; margin-top:76px; padding-right:5px; border-bottom:1px solid #d1d1d1; text-indent:14px;}
+.loca_icon{ display:inline-block; width:16px; height:19px; background-position:-86px -29px; vertical-align:middle;}
+.main_con{ padding:14px;}
+.search_condition{ height:26px; line-height:26px; padding-top:7px; padding-bottom:7px; background:#eaeaea;}
+.boxbor{ border:1px solid #dcdcdc; background:#fff; font-size:12px; border-radius:2px;}
+.choose_box{ min-width:98px; height:26px; margin-left:8px;}
+.data_box{ position:relative; width:108px; height:26px; float:left;}
+.text_box{ width:92px; padding-left:6px; height:24px; line-height:24px; margin-left:8px;}
+.data_img{ display:block; position:absolute; right:5px; top:5px; width:14px; height:15px; background-position:-111px -29px;}
+.time_icon{ display:inline-block; width:14px; height:15px; background-position:-111px -29px; vertical-align:middle;}
+.search{ position:relative; width:226px; height:26px;}
+.search_box{ width:212px; padding-left:6px; height:24px; line-height:24px; margin-left:8px;}
+.search_icon{ display:block; position:absolute; right:5px; top:6px; width:14px; height:14px; background-position:-135px -29px;}
+.search_icon1{ display:block; float:left; margin-left:8px; width:32px; height:26px; line-height:24px; text-align:center; border-radius:2px;}
+.search_icon1 i{ display:inline-block; width:14px; height:14px; background-position:-123px -151px; vertical-align:middle;}
+.add_btn{ display:block; float:left; height:30px; line-height:30px; padding-left:18px; padding-right:18px; border-radius:2px;}
+.again_btn{ display:inline-block; height:26px; line-height:26px; padding-left:12px; padding-right:12px; border-radius:2px;}
+.add_icon{ display:inline-block; margin-right:3px; vertical-align:middle;}
+.addstu{ width:15px; height:15px; background-position:-175px -29px;}
+.addview{ width:16px; height:16px; background-position:-204px -60px;}
+.addquestion{ width:16px; height:16px; background-position:-230px -60px;}
+.addprofession{ width:16px; height:15px; background-position:-256px -60px;}
+.addClass{ width:16px; height:15px; background-position:-256px -60px;}
+.addclass{ width:16px; height:16px; background-position:-282px -60px;}
+.addvocation{ width:13px; height:16px; background-position:0px -151px;}
+.addpayment{ width:15px; height:16px; background-position:-23px -151px;}
+.adduser{ width:15px; height:16px; background-position:-48px -151px;}
+.addrole{ width:16px; height:16px; background-position:-73px -151px;}
+.table_style th{ height:45px; border:1px solid #dcdcdc; background:#ececec; text-align:center; font-weight:bold;}
+.table_style td,.student td,.specialty td{ height:36px; border:1px solid #dcdcdc;}
+.table_style td,.specialty td{ text-align:center;}
+.student td{ padding-left:15px; padding-right:15px;}
+.table_style tr:hover td,.specialty tr:hover td{ background:#ececec;}
+.specialty th{ height:36px; border:1px solid #dcdcdc; background:#ececec; text-align:center; font-weight:bold;}
+tr.bgdisable tr.bgdisable1{ background:#ddd;}
+tr.bgdisable:hover td{ background:none;}
+tr.bgdisable a.edit_icon:hover{ background-position:-250px -29px;}
+tr.bgdisable a.delet_specialty:hover{ background-position:0px -60px;}
+tr.bgdisable a.check_icon:hover{ background-position:-200px -29px;}
+.check_icon{ display:inline-block; width:19px; height:19px; background-position:-200px -29px; margin-left:10px; margin-right:10px; vertical-align:middle;}
+.check_icon:hover{ background-position:-221px -29px;}
+.edit_icon{ display:inline-block; width:19px; height:19px; background-position:-250px -29px; margin-left:10px; margin-right:10px; vertical-align:middle;}
+.edit_icon:hover{ background-position:-271px -29px;}
+.stu_info{ height:45px; border:1px solid #dcdcdc; border-bottom:0px; padding-bottom:20px;}
+.stu_info ul{ height:45px; background:#ececec;}
+.stu_info li{ width:150px; height:45px; line-height:45px; text-align:center; float:left; font-size:18px; font-weight:bold; cursor:pointer;}
+.stu_info li.oncurrent{ background:#fff;}
+.edit_box{ width:100%; height:24px; line-height:24px; text-indent:6px;}
+.edit_box1{ width:90%; height:24px; line-height:24px; text-indent:6px;}
+.select_box{ width:100%; height:26px;}
+.select_box1{ width:90%; height:26px;}
+.textarea_box{ width:100%; height:72px; margin-top:10px;}
+.textarea_box1{ width:212px; height:52px; padding-left:6px; margin-left:8px;}
+.upload_img{ width:456px; height:244px; padding-top:10px; padding-bottom:10px; padding-left:6%; float:left;}
+.delet{ display:block; margin-top:90px; float:right;}
+.deletInfo{ display:block; margin-right:20px; float:left;}
+.upload_area{ width:350px; float:left; text-align:center;}
+.upload_area p{ padding-top:10px; height:24px;}
+.upload_pic{ display:block; position:relative; width:100%; height:210px; line-height:210px; background:#ececec; color:#04b4b3; border-radius:2px;}
+.upload_pic:hover,.upload_head:hover{ background:#04b4b3; color:#fff;}
+.upload_pic i{ display:inline-block; width:53px; height:53px; background-position:-117px -93px; margin-left:40px; vertical-align:middle;}
+.upload_pic:hover i,.upload_head:hover i{ background-position:-172px -93px;}
+.upload_pic img{ display:block; width:346px; height:206px; padding:2px;}
+.upload_pic p{ position:absolute; left:2px; bottom:2px; width:346px; height:30px; line-height:24px; text-align:center; background:rgba(4,180,179,0.8); display:none;}
+.upload_pic:hover p{ display:block;}
+.delet_btn{ height:28px; line-height:28px; padding-left:25px; padding-right:25px; border:1px solid #ff0000; color:#ff0000; border-radius:2px;}
+.delet_btn:hover{ background:#ff0000; color:#fff;}
+.divide_btn{ height:28px; line-height:28px; padding-left:25px; padding-right:25px; border:1px solid #04b4b3; color:#04b4b3; border-radius:2px;}
+.divide_btn:hover,.divide_btnon:hover{ background:#04b4b3; color:#fff;}
+.divide_btnon{ height:28px; line-height:28px; padding-left:25px; padding-right:25px; border:1px solid #04b4b3; background:#04b4b3; color:#fff; border-radius:2px;}
+.upload_head{ display:block; position:relative; width:100%; height:222px; color:#04b4b3; text-align:center;}
+.upload_head span{ display:block; line-height:40px; padding-top:55px; padding-bottom:20px;}
+.upload_head i{ display:inline-block; width:53px; height:53px; background-position:-117px -93px; vertical-align:middle;}
+.upload_head img{ width:190px; height:222px;}
+.upload_head p{ position:absolute; left:0; bottom:0; width:100%; height:30px; line-height:30px; text-align:center; background:rgba(4,180,179,0.8); display:none;}
+.upload_head:hover p{ display:block;}
+.add_specialty{ display:inline-block; width:15px; height:15px; background-position:-124px -60px; vertical-align:middle;}
+.delet_specialty{ display:inline-block; width:16px; height:19px; margin-left:10px; margin-right:10px; background-position:0px -60px; vertical-align:middle;}
+.delet_specialty:hover{ background-position:-18px -60px;}
+.pop_div{ position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.25); z-index:999; display:none;}
+.pop_content{ position:absolute; left:50%; top:200px; width:500px; margin-left:-250px; background:#eee; border-radius:2px; -webkit-box-shadow:0px 0px 6px rgba(0,0,0,0.25);
+-moz-box-shadow:0px 0px 6px rgba(0,0,0,0.25);
+box-shadow:0px 0px 6px rgba(0,0,0,0.25);}
+.pop_content1{ position:absolute; left:50%; top:200px; width:710px; margin-left:-355px; background:#eee; border-radius:2px; -webkit-box-shadow:0px 0px 6px rgba(0,0,0,0.25);
+-moz-box-shadow:0px 0px 6px rgba(0,0,0,0.25);
+box-shadow:0px 0px 6px rgba(0,0,0,0.25);}
+.pop_title{ position:relative; width:100%; height:46px; line-height:46px; background:#04b4b3; border-radius:2px 2px 0px 0px;}
+.pop_title span{ font-size:18px; font-weight:bold; color:#fff; padding-left:24px;}
+.textcenter{ display:block; text-align:center;}
+.pop_class,.pop_student{ padding:15px; text-align:left;}
+.pop_student1{ text-align:center;}
+.pop_class h3{ height:30px;}
+.pop_btn{ padding:15px; float:right;} 
+.status{ padding-top:10px; line-height:30px;}
+.status_con p{ margin-top:8px; line-height:24px;}
+.status_con span{ display:inline-block; vertical-align:top; width:120px; text-align:right;padding-right:20px;}
+.conserve_con{ position:absolute; top:200px; left:50%; width:280px; margin-left:-140px; background:#eee; border-radius:2px; -webkit-box-shadow:0px 0px 6px rgba(0,0,0,0.25);
+-moz-box-shadow:0px 0px 6px rgba(0,0,0,0.25);
+box-shadow:0px 0px 6px rgba(0,0,0,0.25);}
+.success_con{ line-height:120px; text-align:center;}
+.fail_con{ padding-top:35px; padding-bottom:35px; text-align:center;}
+.conserve_con i{ display:inline-block; width:30px; height:30px; vertical-align:middle; margin-right:12px;}
+.success_icon{ background-position:0px -93px;}
+.fail_icon{ background-position:-40px -93px;}
+.operate{ padding-bottom:10px; padding-left:20px; border-left:1px solid #dcdcdc; border-right:1px solid #dcdcdc;}
+.sure_delet{ padding-top:20px; padding-left:30px;}
+.sure_delet i,.not_delet i{ display:block; background-position:-80px -93px; margin-top:5px; float:left;}
+.sure_delet p,.not_delet p{ width:185px; line-height:20px; float:left;}
+.not_delet{ padding-top:40px; padding-left:30px; padding-bottom:40px;}
+.number{ width:40px; line-height:36px; text-align:center;}
+.operate_btn{ display:block; width:20px; height:36px; line-height:36px; border-left:1px solid #dcdcdc; background:#fff; text-align:center;}
+.operate_btn i{ display:inline-block; vertical-align:middle;}
+.packup{  width:5px; height:7px;background-position:-180px -60px;}
+.packdown{  width:7px; height:5px;background-position:-187px -60px;}
+.child_menu{ display:none;}
+.personal_info{ width:950px; margin:0 auto; padding-top:20px;}
+.person_title{ height:60px; line-height:60px; text-align:center; font-weight:bold; color:#595d61;}
+.person_time{ line-height:50px; text-align:center;}
+.person_page{ position:fixed; bottom:0; right:0; width:100%; height:90px; background:#fff; z-index:2;}
+.person_page ul{ padding-top:20px; padding-right:50px; float:right;}
+.person_page li{ float:left; width:66px; height:30px; line-height:30px; margin-left:10px; text-align:center; border:1px solid #dcdcdc; background:#fff; cursor:pointer;}
+.person_page li.onpage{ color:#fff; background:#04b4b3; border:1px solid #04b4b3;}
+.show_file{ padding:40px; line-height:40px;}
+.show_file p{ padding-right:20px;}
+.table_record{ width:670px; padding-top:56px; padding-bottom:20px; padding-right:80px; background:#eaeaea;}
+.table_record td{ height:26px; padding-bottom:30px;}
+.table_record input:disabled,.table_record select:disabled,.table_record textarea:disabled,.add_user input:disabled,.add_user select:disabled,.add_user textarea:disabled{ background:#eaeaea;}
+th.tab_title{ font-size:18px; background:#04b4b3; color:#fff;}
+.close_div{ display:block; position:absolute; top:0; right:10px; width:29px; height:36px; background-position:-235px -93px;}
+.close_div:hover{ background-position:-266px -93px;}
+.class_list{ padding:15px; background:#fff; text-align:left;}
+.class_list ul{ height:154px; margin:0; padding:0; overflow:auto;}
+.class_list li{ float:left; width:25%; height:25px; line-height:25px; font-size:12px;}
+.line_nav{ width:100%; height:1px; background:#232a3a; box-shadow:0px 0px 1px rgba(255,255,255,0.2);}
+.statistic_title{ width:94%; margin:0 auto; padding-top:15px;}
+.statistic_title li{ width:270px; float:left;}
+.statistic_title li span{ font-weight:bold; padding-right:10px;}
+.statistic_con{ width:94%; margin:0 auto; padding-top:30px;}
+.password_change{ width:350px; padding:25px 0px 25px 20px;}
+.add_user{ width:560px; padding:45px 80px 45px 60px; background:#eaeaea;}
+.data_upload{ padding-top:10px; padding-bottom:10px;}
+.frame_left{ width:16%; padding:15px 1% 15px 1%; border:1px solid #dcdcdc; float:left;}
+.frame_right{ width:81%; float:right;}
+.scrollHeight{ height:186px; overflow:auto;}
+.editState,.editSave,.IdentifyEdit,.attachment a{ display: none;}
+
+.error{ position: absolute; left: 50%; top: 50%;}
+.unusual{ width: 644px; height: 666px; margin-left: -322px; margin-top: -333px; background: url(../images/error.jpg) no-repeat center;}
+.error_btn{ display: block; width: 186px; height: 50px; margin-top: 615px;}
+.error_404{ position: absolute; left: 50%; top: 60px; width: 1590px; height: 915px; margin-left: -795px; background: url(../images/404.jpg) no-repeat center;}
+.no_power{ width: 1510px; height: 500px; margin-left: -755px; margin-top: -250px; background: url(../images/no_power.jpg);}
+.no_powerbtn{ display: block; margin-top: 315px; width: 270px; height: 78px;}
+.error_404btn{ display: block; margin-top: 340px; margin-left: 670px; width: 245px; height: 68px;}
+
+.height_112{ height: 112px; overflow: auto;}
+.pop_lead{ padding: 15px 15px 0 15px;}
+.lead_list{ width: 360px; margin-bottom: 20px; background: #fff;}
+.lead_box{ width: 170px; height: 24px; line-height: 24px; margin-left: 10px; text-indent: 8px;}
+.student_archives td{ height:50px; padding-left:15px; padding-right:15px; border:1px solid #999999; font-size: 16px;}
+
+/*选择老师 css*/
+.teacher_popup_cont{ padding: 10px 20px 0;}
+.teacher_list_box{ background: #f7f7f7; height: 300px; width: 280px;}
+.teacher_list_title{  height: 37px; line-height: 37px; padding-left: 10px;position:relative; }
+.teacher_list_title input{ height:25px; line-height:25px; padding-left:5px;}
+.teacher_list_title a.search_icon{ right:16px; top:13px;}
+.teacher_list_input{ border: 0 none; height: 36px; line-height: 36px; width: 214px;}
+.teacher_list_cont{  font-size: 12px; height: 248px; overflow: auto; padding: 7px 10px;}
+.teacher_list{  height: 36px; line-height: 36px; overflow: hidden;}
+.teacher_list img{ width:20px; height:20px;}
+.teacher_btn_box{  padding: 120px 15px 0px; text-align: center; width: 68px;}
+.teacher_btn_add,.teacher_btn_del{ border-radius: 3px; color: #ffffff; display: block;  margin-bottom: 10px; padding:4px 20px;}
+.bdr_gray{ border:1px solid #dadada;}
+.bdr_btm_gray{border-bottom:1px solid #dadada;}
+
+.superior{ background: #fff; border: 1px solid #dcdcdc; padding: 15px; margin-bottom: 10px; height: 110px; overflow: auto;}
+.superior_name{ text-align: left;}
+.superior li{ width: 49%; height: 30px; line-height: 30px; text-align: left; float: left;}
+.upload_certificate img{ max-width:840px;}
+
+/***提示搜搜***/
+.auto_hidden { position:absolute; display:none;}
+.auto_show { position:absolute;	border:1px solid #04b4b3; border-top:0px; z-index:9999; display:block; width: 104px; left: 5px;}
+.auto_onmouseover{ color:#ffffff; background-color:#04b4b3; width:100%;}
+.auto_onmouseout{ color:#717171; width:100%; background-color:#ffffff;}

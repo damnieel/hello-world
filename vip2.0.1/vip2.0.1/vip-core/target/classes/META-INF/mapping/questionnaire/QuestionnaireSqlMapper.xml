@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.questionnaire.QuestionnaireSqlMapper" >
+  
+  <!-- 查询所有问卷调查 -->
+  <select id="selectByRoleDate" resultType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+    SELECT q.ID AS id,q.pro_id AS proId,q.op_pro_ids AS opProIds,q.techer_code AS techerCode,q.investigations_number AS investigationsNumber,
+    q.investigations_date AS investigationsDate,q.excellent AS excellent,q.good AS good,q.`medium`AS medium,q.bad AS bad,
+    q.question AS question,q.solution AS solution,q.annex_address AS annexAddress,q.create_time AS createTime,
+    q.creator AS creator,q.modify_time AS modifyTime,q.modify_user AS modifyUser,b.nick_name AS nickName,
+    b.`name` AS teacherName,b.employee_code AS employeeCode,q.annex_name AS annexName
+    FROM vip_questionnaire q,vip_employee_base b,vip_organizational_professional s 
+    <where>
+        q.techer_code = b.employee_code AND s.ID = q.pro_id
+        <if test="startGood !=null and startGood !='' ">
+			<![CDATA[ AND ( q.excellent >= #{startGood, jdbcType=DOUBLE}) ]]>
+		</if>
+		<if test="endGood !=null and endGood !='' ">
+		    <![CDATA[  AND ( q.excellent <= #{endGood, jdbcType=DOUBLE})]]>
+		</if>
+	    <if test="startTime !=null and startTime !='' ">
+			<![CDATA[ AND ( q.investigations_date >= #{startTime}) ]]>
+		</if>
+		<if test="endTime !=null and endTime !='' ">
+		    <![CDATA[  AND ( q.investigations_date <= #{endTime})]]>
+		</if>
+		<if test="keyword !=null and keyword !='' ">
+		    AND (b.nick_name like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  b.`name` like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  b.employee_code like CONCAT(CONCAT('%',#{keyword}),'%'))
+		</if>
+		    AND s.ID in
+			<foreach collection="opClaIds" item="Id" index="index"
+		       				 open="(" close=")" separator=","> 
+		    	  #{Id}	
+			</foreach>
+	 	<if test="searchOpClaIds != null" >
+			AND s.ID in
+			<foreach collection="searchOpClaIds" item="Id" index="index"
+	     					 open="(" close=")" separator=","> 
+	     	  #{Id}	
+	       </foreach>
+	    </if>
+    </where>
+	ORDER BY q.investigations_date DESC
+	limit #{offset},#{pageSize};
+  </select>
+  
+  <!-- 查询问卷总数 -->
+ <select id="selectCount" resultType="java.lang.Integer" parameterType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+    SELECT count(*)
+    FROM vip_questionnaire q,vip_employee_base b,vip_organizational_professional s 
+    <where>
+        q.techer_code = b.employee_code AND s.ID = q.pro_id
+        <if test="startGood !=null and startGood !='' ">
+			<![CDATA[ AND ( q.excellent >= #{startGood, jdbcType=DOUBLE}) ]]>
+		</if>
+		<if test="endGood !=null and endGood !='' ">
+		    <![CDATA[  AND ( q.excellent <= #{endGood, jdbcType=DOUBLE})]]>
+		</if>
+	    <if test="startTime !=null and startTime !='' ">
+			<![CDATA[ AND ( q.investigations_date >= #{startTime}) ]]>
+		</if>
+		<if test="endTime !=null and endTime !='' ">
+		    <![CDATA[  AND ( q.investigations_date <= #{endTime})]]>
+		</if>
+        <if test="keyword !=null and keyword !='' ">
+		    AND (b.nick_name like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  b.`name` like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  b.employee_code like CONCAT(CONCAT('%',#{keyword}),'%'))
+		</if>
+		  AND s.ID in
+			<foreach collection="opClaIds" item="Id" index="index"
+		       				 open="(" close=")" separator=","> 
+		    	  #{Id}	
+			</foreach>
+	 	<if test="searchOpClaIds != null" >
+			AND s.ID in
+			<foreach collection="searchOpClaIds" item="Id" index="index"
+	     					 open="(" close=")" separator=","> 
+	     	  #{Id}	
+	       </foreach>
+	       </if>
+    </where>
+  </select>
+  
+  <!-- 查看问卷详情 -->
+  <select id="questionnaireDetail" resultType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+	SELECT q.ID AS id,q.pro_id AS proId,q.op_pro_ids AS opProIds,q.techer_code AS techerCode,q.investigations_number AS investigationsNumber,
+	q.investigations_date AS investigationsDate,q.excellent AS excellent,q.good AS good,q.`medium` AS medium,q.bad AS bad,
+	q.question AS question,q.solution AS solution,q.annex_name AS annexName,q.annex_address AS annexAddress,
+	b.`name` AS teacherName,b.nick_name AS nickName
+	FROM vip_questionnaire q,vip_employee_base b
+	WHERE q.techer_code = b.employee_code AND q.ID =#{id};
+  </select>
+  
+  <!-- 根据专业id查询专业名称 -->
+  <select id="selectCourseNameByID" resultType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+     SELECT id AS proId,`name` AS courseName FROM vip_organizational_professional 
+     <where>
+       type='pro'
+       <if test="id != null">
+          AND id=#{id};
+       </if>
+     </where> 
+  </select>
+  
+  <!-- 查询集群 -->
+  <select id="selectCluster" resultType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+	SELECT id AS proId,`name` AS cName  FROM vip_organizational_professional
+    <where>
+       type ='org' AND partent_id ='1' AND is_valid ='Y'
+       <if test="id != null">
+         AND id = #{id}
+       </if>
+    </where>
+  </select>
+  
+  <!-- 查询部门 -->
+  <select id="selectDepartment" resultType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+    SELECT id AS proId,`name` AS dName
+    FROM vip_organizational_professional 
+    <where>
+       type ='org' AND partent_id >1
+       <if test="id != null">
+          AND id=#{id}
+       </if>
+    </where> 
+  </select>
+  
+  <!-- 删除问卷调查 -->
+  <delete id="deleteQuestionnaire" parameterType="java.lang.Integer">
+    DELETE FROM vip_questionnaire WHERE ID =#{id,jdbcType=INTEGER};
+  </delete>
+  
+  <!-- 修改问卷调查 -->
+  <update id="updateByRoleDate" parameterType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO" >
+    UPDATE vip_questionnaire 
+    <set>
+        <if test="proId != null">
+        pro_id = #{proId,jdbcType =INTEGER},
+    </if> 
+    <if test="opProIds != null">
+        op_pro_ids = #{opProIds,jdbcType =VARCHAR},
+    </if> 
+    <if test="techerCode != null">
+        techer_code =#{techerCode,jdbcType =VARCHAR},
+    </if>
+    <if test="investigationsNumber != null">
+        investigations_number = #{investigationsNumber,jdbcType=INTEGER},
+    </if>
+    <if test="investigationsDate != null">
+        investigations_date = #{investigationsDate,jdbcType=TIMESTAMP},
+    </if>
+    <if test="excellent != null">
+        excellent = #{excellent,jdbcType=DOUBLE},
+    </if>
+    <if test="good != null">
+        good = #{good,jdbcType=DOUBLE},
+    </if>
+    <if test="medium != null">
+        `medium` = #{medium,jdbcType=DOUBLE},
+    </if>
+    <if test="bad != null">
+        bad = #{bad,jdbcType=DOUBLE},
+    </if>
+    <if test="question != null">
+         question = #{question,jdbcType =VARCHAR},
+    </if>
+    <if test="solution != null">
+        solution =#{solution,jdbcType =VARCHAR},
+    </if>
+    <if test="annexName != null">
+        annex_name=#{annexName,jdbcType =VARCHAR},
+    </if>
+    <if test="annexAddress != null">
+        annex_address=#{annexAddress,jdbcType =VARCHAR},
+    </if>
+    <if test="modifyTime != null">
+        modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+    </if>
+    <if test="modifyUser != null">
+        modify_user = #{modifyUser,jdbcType =VARCHAR}
+    </if>
+    </set>
+    WHERE ID =#{id,jdbcType=INTEGER};
+  </update>
+  
+  <!-- 添加问卷调查 -->
+  <insert id="insertByRoleDate" useGeneratedKeys="true" keyProperty="id" parameterType="com.moon.vip.infra.vo.questionnaire.QuestionnaireVO">
+    INSERT INTO vip_questionnaire (pro_id,op_pro_ids,techer_code,investigations_number,investigations_date,excellent,
+    good,`medium`,bad,question,solution,annex_name,annex_address,create_time,creator) 
+    VALUES (#{proId,jdbcType=INTEGER},#{opProIds,jdbcType =VARCHAR},#{techerCode,jdbcType =VARCHAR},#{investigationsNumber,jdbcType=INTEGER},
+    #{investigationsDate,jdbcType=TIMESTAMP},#{excellent,jdbcType=DOUBLE},#{good,jdbcType=DOUBLE},#{medium,jdbcType=DOUBLE},
+    #{bad,jdbcType=DOUBLE},#{question,jdbcType =VARCHAR},#{solution,jdbcType =VARCHAR},#{annexName,jdbcType =VARCHAR},
+    #{annexAddress,jdbcType =VARCHAR},#{createTime,jdbcType=TIMESTAMP},#{creator,jdbcType =VARCHAR});
+  </insert>
+  
+  <!-- 根据讲师昵称查询工号和姓名 -->
+  <select id="selectByNikeName" resultType="com.moon.vip.infra.vo.questionnaire.EmployeeVO">
+     SELECT  ID AS id, employee_code AS employeeCode, `name` AS employeeName,nick_name AS nickName
+     FROM vip_employee_base
+     WHERE nick_name = #{nickName,jdbcType =VARCHAR} 
+     limit 0,1;
+  </select>
+  
+  <!-- 根据工号查询昵称和姓名 -->
+  <select id="selectByCode" resultType="com.moon.vip.infra.vo.questionnaire.EmployeeVO">
+     SELECT ID AS id, nick_name AS nickName, `name` AS employeeName,employee_code AS employeeCode
+     FROM vip_employee_base 
+     WHERE employee_code = #{employeeCode,jdbcType =VARCHAR} limit 0,1;
+  </select>
+  
+</mapper>

@@ -1,0 +1,207 @@
+package com.moon.vip.infra.vo.onReadPage;
+
+import java.util.HashSet;
+
+import com.moon.vip.infra.vo.sys.OnReadSearchVO;
+
+/**
+ * 在读学员上传服务器数据VO
+ * @ClassName: onReadPageParamsVO 
+ * @Description: TODO(这里用一句话描述这个类的作用) 
+ * @author 大枫
+ * @date 2015年12月30日 下午4:07:23 
+ *
+ */
+public class ParamsVO extends OnReadSearchVO{
+	
+	private static final long serialVersionUID = 4971383184280146573L;
+	//divideGrade.htmls
+	/**
+	 * 学员id 单个或数组 员工id
+	 */
+	private String idArray;
+	/**
+	 * 班级信息id 单个或数组
+	 */
+	private String gradeIdArray;
+	/**
+	 * 班级orgid 单个或数组
+	 */
+	private String gradeOrgIdArray;
+	/**
+	 * 专业信息id 单个或数组 
+	 */
+	private String profIdArray;
+	/**
+	 * 专业Orgid 单个或数组 
+	 */
+	private String profOrgIdArray;
+	/**
+	 * 学员状态 单个或数组
+	 */
+	private String statusArray;
+	/**
+	 * 角色id 单个或数组
+	 */
+	private String roleIdArray;
+	/**
+	 * 角色id和员工id对应表的主键
+	 */
+	private String empRoleIdArray;
+	/**
+	 * 专业名称
+	 */
+	private String profName;	
+	/**
+	 * 专业信息id
+	 */
+	private Integer profId;
+	/**
+	 * 专业Orgsid
+	 */
+	private Integer profOrgId;
+	/**
+	 * 数据操作者 工号
+	 */
+	private String creator;
+	/**
+	 * 学员姓名
+	 */
+	private String nameArray;
+	/**
+	 * 数据权限过滤集合
+	 */
+	private HashSet<Integer> opClaIds;
+	/**
+	 * 搜索组织结合
+	 */
+	private HashSet<Integer> searchOpClaIds;
+	/**
+	 * 角色id
+	 */
+	private String roleId;
+	/**
+	 * 是否存在班级
+	 */
+	private Boolean existClass;
+	
+	
+	@Override
+	public String toString() {
+		return "ParamsVO [idArray=" + idArray + ", gradeIdArray=" + gradeIdArray + ", gradeOrgIdArray="
+				+ gradeOrgIdArray + ", profIdArray=" + profIdArray + ", profOrgIdArray=" + profOrgIdArray
+				+ ", statusArray=" + statusArray + ", roleIdArray=" + roleIdArray + ", empRoleIdArray="
+				+ empRoleIdArray + ", profName=" + profName + ", profId=" + profId + ", profOrgId=" + profOrgId
+				+ ", creator=" + creator + ", nameArray=" + nameArray + ", opClaIds=" + opClaIds + ", searchOpClaIds="
+				+ searchOpClaIds + ", roleId=" + roleId + ", existClass=" + existClass + "]";
+	}
+	
+	
+	public String getRoleId() {
+		return roleId;
+	}
+
+
+	public void setRoleId(String roleId) {
+		this.roleId = roleId;
+	}
+
+
+	public String getIdArray() {
+		return idArray;
+	}
+	public void setIdArray(String idArray) {
+		this.idArray = idArray;
+	}
+	public String getGradeIdArray() {
+		return gradeIdArray;
+	}
+	public void setGradeIdArray(String gradeIdArray) {
+		this.gradeIdArray = gradeIdArray;
+	}
+	public String getProfName() {
+		return profName;
+	}
+	public void setProfName(String profName) {
+		this.profName = profName;
+	}
+	public String getCreator() {
+		return creator;
+	}
+	public void setCreator(String creator) {
+		this.creator = creator;
+	}
+	public String getNameArray() {
+		return nameArray;
+	}
+	public void setNameArray(String nameArray) {
+		this.nameArray = nameArray;
+	}
+	public Integer getProfId() {
+		return profId;
+	}
+	public void setProfId(Integer profId) {
+		this.profId = profId;
+	}
+	public String getProfIdArray() {
+		return profIdArray;
+	}
+	public void setProfIdArray(String profIdArray) {
+		this.profIdArray = profIdArray;
+	}
+	public String getStatusArray() {
+		return statusArray;
+	}
+	public void setStatusArray(String statusArray) {
+		this.statusArray = statusArray;
+	}
+	public String getRoleIdArray() {
+		return roleIdArray;
+	}
+	public void setRoleIdArray(String roleIdArray) {
+		this.roleIdArray = roleIdArray;
+	}
+	public String getEmpRoleIdArray() {
+		return empRoleIdArray;
+	}
+	public void setEmpRoleIdArray(String empRoleIdArray) {
+		this.empRoleIdArray = empRoleIdArray;
+	}
+	public HashSet<Integer> getOpClaIds() {
+		return opClaIds;
+	}
+	public void setOpClaIds(HashSet<Integer> opClaIds) {
+		this.opClaIds = opClaIds;
+	}
+	public Boolean getExistClass() {
+		return existClass;
+	}
+	public void setExistClass(Boolean existClass) {
+		this.existClass = existClass;
+	}
+	public HashSet<Integer> getSearchOpClaIds() {
+		return searchOpClaIds;
+	}
+	public void setSearchOpClaIds(HashSet<Integer> searchOpClaIds) {
+		this.searchOpClaIds = searchOpClaIds;
+	}
+	public String getGradeOrgIdArray() {
+		return gradeOrgIdArray;
+	}
+	public void setGradeOrgIdArray(String gradeOrgIdArray) {
+		this.gradeOrgIdArray = gradeOrgIdArray;
+	}
+	public String getProfOrgIdArray() {
+		return profOrgIdArray;
+	}
+	public void setProfOrgIdArray(String profOrgIdArray) {
+		this.profOrgIdArray = profOrgIdArray;
+	}
+	public Integer getProfOrgId() {
+		return profOrgId;
+	}
+	public void setProfOrgId(Integer profOrgId) {
+		this.profOrgId = profOrgId;
+	}
+	
+}

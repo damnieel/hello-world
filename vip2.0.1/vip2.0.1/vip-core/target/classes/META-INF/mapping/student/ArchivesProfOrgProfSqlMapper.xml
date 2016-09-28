@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.ArchivesProfOrgProfSqlMapper" >
+  <!-- 根据QQ查找学员专业信息， 上传Excel功能 by 大枫  -->
+  <select id="selectExcelClumByQQ" 
+  	resultType="com.moon.vip.infra.vo.excel.UploadStudentVO" parameterType="java.lang.String" >
+	SELECT
+		arch.ID as id,
+		arch.`name`,
+		arch.telephone,
+		arch.QQ,
+		orgProf.`name` as professionalName,	
+		prof.ID as profId,
+		prof.profession_code as professionCode,
+		prof.amount_payable as amountPayable, 
+		prof.payment, 
+		prof.enter_date	as enterDate
+	FROM
+		vip_student_archives arch, vip_student_professional prof, vip_organizational_professional orgProf
+	WHERE
+		prof.student_id = arch.ID AND
+		prof.op_pro_id = orgProf.ID AND
+		QQ = #{QQ,jdbcType=VARCHAR}
+		AND prof.op_pro_id = #{opProId, jdbcType=VARCHAR}
+		AND arch.is_valid='Y'
+		AND prof.is_valid='Y'
+		AND orgProf.is_valid='Y'
+		;
+  </select>
+  <!-- 根据QQ查找学员信息， 上传Excel功能 by大枫 -->
+  <select id="selectArchByQQ" resultType="com.moon.vip.infra.vo.excel.UploadStudentVO" parameterType="java.lang.String">
+	SELECT
+		arch.ID AS id,
+		arch.`name`,
+		arch.telephone,
+		arch.QQ
+	FROM
+		vip_student_archives arch
+	WHERE
+		arch.QQ = #{QQ, jdbcType=VARCHAR}
+	AND arch.is_valid='Y';
+  </select>  
+  <!-- 插入学员信息 返回id by大枫 -->
+  <insert id="insertStudentData" useGeneratedKeys="true" keyProperty="id"
+  						 parameterType="com.moon.vip.model.student.StudentArchives" >
+    insert into vip_student_archives
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        ID,
+      </if>
+      <if test="codeNo != null" >
+        code_no,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="nameSpell != null" >
+        name_spell,
+      </if>
+      <if test="nickName != null" >
+        nick_name,
+      </if>
+      <if test="stuPictureUrl != null" >
+        stu_picture_url,
+      </if>
+      <if test="sex != null" >
+        sex,
+      </if>
+      <if test="birthday != null" >
+        birthday,
+      </if>
+      <if test="telephone != null" >
+        telephone,
+      </if>
+      <if test="email != null" >
+        email,
+      </if>
+      <if test="postalCode != null" >
+        postal_code,
+      </if>
+      <if test="qq != null" >
+        QQ,
+      </if>
+      <if test="yy != null" >
+        YY,
+      </if>
+      <if test="idCard != null" >
+        id_card,
+      </if>
+      <if test="cardFrontAddress != null" >
+        card_front_address,
+      </if>
+      <if test="cardReverseAddress != null" >
+        card_reverse_address,
+      </if>
+      <if test="educationBackground != null" >
+        education_background,
+      </if>
+      <if test="emergencyPerson != null" >
+        emergency_person,
+      </if>
+      <if test="contratRelationshipsCode != null" >
+        contrat_relationships_code,
+      </if>
+      <if test="emergencyTelephone != null" >
+        emergency_telephone,
+      </if>
+      <if test="note != null" >
+        note,
+      </if>
+      <if test="isValid != null" >
+        is_valid,
+      </if>
+      <if test="componentCode != null" >
+        component_code,
+      </if>
+      <if test="occupationCode != null" >
+        occupation_code,
+      </if>
+      <if test="school != null" >
+        school,
+      </if>
+      <if test="nativePlace != null" >
+        native_place,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="hobbies != null" >
+        hobbies,
+      </if>
+      <if test="studentResources != null" >
+        student_resources,
+      </if>
+      <if test="otherResources != null" >
+        other_resources,
+      </if>
+      <if test="costResources != null" >
+        cost_resources,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="creator != null" >
+        creator,
+      </if>
+      <if test="modifyTime != null" >
+        modify_time,
+      </if>
+      <if test="modifyUser != null" >
+        modify_user,
+      </if>
+      <if test="version != null" >
+        version,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="codeNo != null" >
+        #{codeNo,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="nameSpell != null" >
+        #{nameSpell,jdbcType=VARCHAR},
+      </if>
+      <if test="nickName != null" >
+        #{nickName,jdbcType=VARCHAR},
+      </if>
+      <if test="stuPictureUrl != null" >
+        #{stuPictureUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        #{sex,jdbcType=CHAR},
+      </if>
+      <if test="birthday != null" >
+        #{birthday,jdbcType=DATE},
+      </if>
+      <if test="telephone != null" >
+        #{telephone,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="postalCode != null" >
+        #{postalCode,jdbcType=VARCHAR},
+      </if>
+      <if test="qq != null" >
+        #{qq,jdbcType=VARCHAR},
+      </if>
+      <if test="yy != null" >
+        #{yy,jdbcType=VARCHAR},
+      </if>
+      <if test="idCard != null" >
+        #{idCard,jdbcType=VARCHAR},
+      </if>
+      <if test="cardFrontAddress != null" >
+        #{cardFrontAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="cardReverseAddress != null" >
+        #{cardReverseAddress,jdbcType=VARCHAR},
+      </if>
+      <if test="educationBackground != null" >
+        #{educationBackground,jdbcType=CHAR},
+      </if>
+      <if test="emergencyPerson != null" >
+        #{emergencyPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="contratRelationshipsCode != null" >
+        #{contratRelationshipsCode,jdbcType=VARCHAR},
+      </if>
+      <if test="emergencyTelephone != null" >
+        #{emergencyTelephone,jdbcType=CHAR},
+      </if>
+      <if test="note != null" >
+        #{note,jdbcType=VARCHAR},
+      </if>
+      <if test="isValid != null" >
+        #{isValid,jdbcType=CHAR},
+      </if>
+      <if test="componentCode != null" >
+        #{componentCode,jdbcType=VARCHAR},
+      </if>
+      <if test="occupationCode != null" >
+        #{occupationCode,jdbcType=VARCHAR},
+      </if>
+      <if test="school != null" >
+        #{school,jdbcType=VARCHAR},
+      </if>
+      <if test="nativePlace != null" >
+        #{nativePlace,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="hobbies != null" >
+        #{hobbies,jdbcType=VARCHAR},
+      </if>
+      <if test="studentResources != null" >
+        #{studentResources,jdbcType=VARCHAR},
+      </if>
+      <if test="otherResources != null" >
+        #{otherResources,jdbcType=VARCHAR},
+      </if>
+      <if test="costResources != null" >
+        #{costResources,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="creator != null" >
+        #{creator,jdbcType=VARCHAR},
+      </if>
+      <if test="modifyTime != null" >
+        #{modifyTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifyUser != null" >
+        #{modifyUser,jdbcType=VARCHAR},
+      </if>
+      <if test="version != null" >
+        #{version,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  
+ 	<!-- 删除未分班学员信息  将is_valid更新为N -->
+ 	<update id="updateValidArchProf" parameterType="java.lang.Integer">
+ 		UPDATE vip_student_archives
+		SET is_valid = 'N' 
+		WHERE
+			ID = #{id, jdbcType=INTEGER};
+		
+<!-- 		UPDATE vip_student_professional
+		SET is_valid = 'N'
+		WHERE
+			student_id = #{id, jdbcType=VARCHAR};  -->
+ 	</update>
+</mapper>

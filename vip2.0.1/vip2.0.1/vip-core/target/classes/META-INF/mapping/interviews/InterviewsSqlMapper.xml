@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.interviews.InterviewsSqlMapper" >
+<resultMap id="ResultMap" type="com.moon.vip.infra.vo.interviews.InterviewsVO" >
+  <id column="ID" property="id" jdbcType="INTEGER" />
+  <result column="opProId" property="opProId" jdbcType="INTEGER" />
+  <result column="codeNo" property="codeNo" jdbcType="VARCHAR" />
+  <result column="studentName" property="studentName" jdbcType="VARCHAR" />
+  <result column="qq" property="qq" jdbcType="VARCHAR" />
+  <result column="professionId" property="professionId" jdbcType="INTEGER" />
+  <result column="professionName" property="professionName" jdbcType="VARCHAR" />
+  <result column="teacherName" property="teacherName" jdbcType="VARCHAR" />
+  <result column="interviewerName" property="interviewerName" jdbcType="VARCHAR" />
+  <result column="occupationCode" property="occupationCode" jdbcType="VARCHAR" />
+  <result column="occupationName" property="occupationName" jdbcType="VARCHAR" />
+  <result column="learnAimCode" property="learnAimCode" jdbcType="INTEGER" />
+  <result column="learnAimContent" property="learnAimContent" jdbcType="VARCHAR" />
+  <result column="suggest" property="suggest" jdbcType="VARCHAR" />
+  <result column="puzzle" property="puzzle" jdbcType="VARCHAR" />
+  <result column="note" property="note" jdbcType="VARCHAR" />
+  <result column="interviewTime" property="interviewTime" jdbcType="TIMESTAMP" />
+</resultMap>
+  <!-- 查询访谈记录所需要的信息 -->
+<select id="selectInterviewItems" resultMap="ResultMap" parameterType="com.moon.vip.infra.vo.sys.SearchVO">
+SELECT
+	iv.ID id,
+  iv.op_pro_id opProId,
+  sp.profession_code codeNo,
+  sa.`name` studentName,
+  sa.QQ qq,
+  op.`name` professionName,
+  teb.nick_name teacherName,
+  ieb.nick_name interviewerName,
+  sa.occupation_code occupationCode,
+  ct.code_value occupationName,
+  iv.learn_aim_code learnAimCode,
+  iv.learn_aim_content learnAimContent,
+  iv.suggest suggest,
+  iv.puzzle puzzle,
+  iv.note note,
+  iv.interview_time interviewTime
+FROM
+  	 vip_interviews iv 
+JOIN vip_student_archives sa ON iv.student_id = sa.ID
+LEFT JOIN vip_employee_base teb ON iv.techer_code = teb.employee_code
+LEFT JOIN vip_employee_base ieb ON iv.Interviewer_code = ieb.employee_code
+JOIN vip_student_professional sp ON (iv.student_id=sp.student_id AND iv.op_pro_id=sp.op_pro_id)
+LEFT JOIN vip_organizational_professional op ON iv.op_pro_id=op.ID
+LEFT JOIN vip_code_table ct ON (sa.occupation_code=ct.code_key AND ct.type='professional')
+WHERE 
+sa.is_valid='Y'
+AND op.is_valid='Y'
+<if test="opClaIds != null">  
+AND
+sp.op_pro_id in 
+     <foreach collection="opClaIds" item="Id" index="index"
+		 open="(" close=")" separator=","> 
+		 #{Id}
+	 </foreach>
+</if> 
+<if test="startDate != null and endDate != null">
+AND iv.interview_time <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+AND iv.interview_time <![CDATA[<=]]> #{endDate,jdbcType=DATE}
+</if>
+<if test="keyWord!=null">
+ AND (sa.`name` LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.telephone  LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.QQ LIKE #{keyWord,jdbcType=VARCHAR})
+</if>
+<if test="searchOpClaIds != null" >
+ AND op.ID in
+	<foreach collection="searchOpClaIds" item="Id" index="index" open="(" close=")" separator=","> 
+	 #{Id}	
+	</foreach>
+</if>
+ORDER BY iv.create_time desc 
+<if test="pSize !=0 and pSize != null ">
+LIMIT #{pageNo,jdbcType=INTEGER},#{pSize,jdbcType=INTEGER}
+</if>
+ </select>
+ 
+   <!-- 查询访谈记录所需要的信息的总记录 -->
+<select id="selectItemsCount" resultType="Integer" parameterType="com.moon.vip.infra.vo.sys.SearchVO">
+SELECT
+	count(*)
+FROM
+  	vip_interviews iv 
+JOIN vip_student_archives sa ON iv.student_id = sa.ID
+LEFT JOIN vip_employee_base teb ON iv.techer_code = teb.employee_code
+LEFT JOIN vip_employee_base ieb ON iv.Interviewer_code = ieb.employee_code
+JOIN vip_student_professional sp ON (iv.student_id=sp.student_id AND iv.op_pro_id=sp.op_pro_id)
+LEFT JOIN vip_organizational_professional op ON iv.op_pro_id=op.ID
+LEFT JOIN vip_code_table ct ON (sa.occupation_code=ct.code_key AND ct.type='professional')
+WHERE 
+sa.is_valid='Y'
+
+<if test="opClaIds != null">  
+AND
+sp.op_pro_id in 
+     <foreach collection="opClaIds" item="Id" index="index"
+		 open="(" close=")" separator=","> 
+		 #{Id}
+	 </foreach>
+</if>
+<if test="searchOpClaIds != null" >
+ AND op.ID in
+	<foreach collection="searchOpClaIds" item="Id" index="index" open="(" close=")" separator=","> 
+	 #{Id}	
+	</foreach>
+</if> 
+<if test="startDate != null and endDate != null">
+AND iv.interview_time <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+AND iv.interview_time <![CDATA[<=]]> #{endDate,jdbcType=DATE}
+</if>
+<if test="keyWord!=null">
+ AND (sa.`name` LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.telephone  LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.QQ LIKE #{keyWord,jdbcType=VARCHAR})
+</if>
+</select>
+ 
+ <!-- 查询访谈记录所需要的信息 -->
+<select id="selectInterviewItem" resultMap="ResultMap" >
+SELECT
+	iv.ID id,
+  sp.profession_code codeNo,
+  sa.`name` studentName,
+  sa.QQ qq,
+  op.`name` professionName,
+  teb.nick_name teacherName,
+  ieb.nick_name interviewerName,
+  sa.occupation_code occupationCode,
+  ct.code_value occupationName,
+  iv.learn_aim_code learnAimCode,
+  iv.learn_aim_content learnAimContent,
+  iv.suggest suggest,
+  iv.puzzle puzzle,
+  iv.note note,
+  iv.interview_time interviewTime
+FROM
+  	vip_interviews iv 
+JOIN vip_student_archives sa ON iv.student_id = sa.ID
+LEFT JOIN vip_employee_base teb ON iv.techer_code = teb.employee_code
+LEFT JOIN vip_employee_base ieb ON iv.Interviewer_code = ieb.employee_code
+JOIN vip_student_professional sp ON (iv.student_id=sp.student_id AND iv.op_pro_id=sp.op_pro_id)
+LEFT JOIN vip_organizational_professional op ON iv.op_pro_id=op.ID
+LEFT JOIN vip_code_table ct ON (sa.occupation_code=ct.code_key AND ct.type='professional')
+WHERE 
+sa.is_valid='Y'
+AND iv.ID=#{id,jdbcType=INTEGER} 
+ </select>
+ 
+ <select id="selectAddBaseInfoByQq" resultMap="ResultMap" >
+SELECT
+  op.id professionId,
+  sa.id id,
+  sa.`name` studentName,
+  ct.code_value occupationName, 
+  op.`name` professionName
+FROM
+	vip_student_archives sa
+LEFT JOIN  vip_code_table ct ON (sa.occupation_code=ct.code_key AND ct.type='professional')
+JOIN vip_student_professional sp ON sa.ID=sp.student_id
+JOIN vip_organizational_professional op ON (sp.op_pro_id=op.ID AND op.is_valid='Y') 
+WHERE 
+sa.QQ=#{qq,jdbcType=VARCHAR} 
+ </select> 
+ 
+  <select id="selectProfessionCode" resultType="String" >
+SELECT
+  sp.profession_code professionCode
+FROM
+  vip_student_archives sa,
+  vip_student_professional sp
+WHERE sa.ID=sp.student_id
+AND sa.QQ=#{qq,jdbcType=VARCHAR} 
+AND sp.op_pro_id=#{id,jdbcType=INTEGER} 
+ </select> 
+ 
+  <!-- 批量删除选中的访谈记录 -->
+<delete id="deleteInterviewsById" parameterType="java.util.List" >
+  DELETE FROM vip_interviews
+  WHERE ID in
+  <foreach collection="idList" item="item"  open="(" separator="," close=")">  
+  	#{item}
+  </foreach>
+</delete>
+
+  	<!-- 查找该员工是否有访谈记录   大枫-->
+	<select id="selectByStudentId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		SELECT COUNT(1) from vip_interviews
+			WHERE student_id = #{id, jdbcType=INTEGER} 
+			AND op_pro_id = #{profOrgId, jdbcType=VARCHAR};
+	</select>
+  
+</mapper>

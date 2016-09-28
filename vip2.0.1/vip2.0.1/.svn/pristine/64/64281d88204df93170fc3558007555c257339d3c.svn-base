@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.assignment.SchoolAssignmentDetailSqlMapper" >
+  <resultMap id="BaseResultMap" type="com.moon.vip.model.assignment.SchoolAssignmentDetail" >
+    <id column="ID" property="id" jdbcType="INTEGER" />
+    <result column="profession_id" property="professionId" jdbcType="INTEGER" />
+    <result column="class_id" property="classId" jdbcType="INTEGER" />
+    <result column="sac_id" property="sacId" jdbcType="INTEGER" />
+    <result column="student_id" property="studentId" jdbcType="INTEGER" />
+    <result column="check_date" property="checkDate" jdbcType="DATE" />
+    <result column="check_status" property="checkStatus" jdbcType="INTEGER" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="creator" property="creator" jdbcType="VARCHAR" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user" property="modifyUser" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    ID, sac_id,profession_id, class_id, student_id, check_date, check_status, create_time, creator, 
+    modify_time, modify_user, version
+  </sql>
+  <select id="selectCountByStudentId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+  	SELECT COUNT(1) from vip_school_assignment_detail detail, vip_school_assignment_class class
+	WHERE detail.sac_id = class.ID
+		AND	detail.student_id = #{id, jdbcType=INTEGER}
+		AND class.class_id = #{gradeOrgId,jdbcType=INTEGER}
+		AND class.profession_id = #{profOrgId,jdbcType=INTEGER}
+		AND detail.check_status = '1'
+		AND detail.is_valid = 'Y';
+  </select>
+  
+   <update id="updateRecordByParams" parameterType="java.lang.Integer">
+    update vip_school_assignment_detail detail,
+    (SELECT class.id from vip_school_assignment_detail detail, vip_school_assignment_class class WHERE detail.sac_id = class.ID AND
+     detail.student_id =  #{id, jdbcType=INTEGER} AND class.class_id =  #{gradeOrgId, jdbcType=INTEGER} AND class.profession_id =  #{profOrgId, jdbcType=INTEGER} AND detail.check_status = '1' AND detail.is_valid = 'Y') as sac
+    <set>
+		detail.is_valid = 'N'
+    </set>
+    WHERE detail.student_id = #{id, jdbcType=INTEGER}
+	AND detail.sac_id =  sac.id
+   </update>
+</mapper>

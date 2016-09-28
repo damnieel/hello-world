@@ -1,0 +1,95 @@
+/**
+ * 分页查询学生报名学习的专业
+ * @param opts
+ */
+function pageQuery(opts,isSearch){
+	var currentCount = 0;
+	
+	if(isSearch==true){
+		delLocalCookie("pageId");
+	}
+	var oldParam = opts;
+	opts = jQuery.extend({
+		startNumber : 0,
+		pageSize: 10,
+		orgProCalId:0,
+		/*searchKey:null,*/
+		callback:function(){}
+	},opts||{});
+	
+	if(isEmpty(opts.countUrl) || isEmpty(opts.dataUrl)){
+		return;
+	}
+	
+	$.ajax({
+		async:false,  
+		url: opts.countUrl,
+		type:"POST",
+		data:opts,
+		success:function(data){
+			var count = data;
+			currentCount = data;
+			$("#itemCount").val(count);
+			tm_init_page(count);
+			$("#page").hide();
+		},
+		error:function(){
+			tmLoading("加载失败，请稍后再试",2);
+		}
+	});
+	
+	
+	/**
+	 * 初始化分页组件
+	 * @param itemCount
+	 */
+	function tm_init_page(itemCount) {
+		$("#page").pagination(itemCount, {
+			num_edge_entries : 3, //边缘页数
+			num_display_entries : 3, //主体页数
+			current_page : Math.floor(opts.startNumber /opts.pageSize),
+			showGo:true,
+			showSelect:true,
+			items_per_page : opts.pageSize, //每页显示X项
+			prev_text : "前一页",
+			next_text : "后一页",
+			load_first_page : true,
+			callback : function(currentPage,pageSize) {
+				tm_load_template(currentPage,pageSize);
+			}
+		});
+	};
+
+	/**
+	 * 
+	 * @param pageNo
+	 * @param psize
+	 * @param callback
+	 */
+	function tm_load_template(currentPage,pageSize,callback){
+		tmLoading("数据加载中...",10);
+		opts.startNumber = currentPage*pageSize;
+		opts.pageSize = pageSize
+		$.ajax({
+			url: opts.dataUrl,
+			type:"POST",
+			data :opts,
+			success : function(data) {
+				tmLoading("数据加载中...",1);
+				if(currentCount > 10){
+					$("#page").show();
+				}
+				$("#result").html(data).show();
+				oldParam.startNumber = currentPage*pageSize;
+				oldParam.pageSize = pageSize;
+				if(opts.callback){
+					opts.callback();
+				}
+			},
+			error:function(){
+				tmLoading("加载失败，请稍后再试",2);
+			}
+		});            
+	};
+	
+};

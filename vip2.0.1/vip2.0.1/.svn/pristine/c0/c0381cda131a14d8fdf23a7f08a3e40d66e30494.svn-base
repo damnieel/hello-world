@@ -1,0 +1,67 @@
+/** *浏览器兼容(回车事件)** */
+document.onkeydown = function(e) {
+	var keycode = document.all ? event.keyCode : e.which;
+	if (keycode == 13) {
+		$("#search").click();
+	}
+}
+
+pageOpts = {"startNumber" : 0,
+		"pageSize": 10,
+		"countUrl" : basePath + "statistic/getCountStuProfess.htmls",
+		"dataUrl" : basePath + "statistic/stuProfessPage.htmls",
+		"orgProCalId":0,
+		"professNumber":0,
+		"searchKey":null
+	};
+
+$(function(){
+	
+	if(!isEmpty(pageNo)){
+		pageOpts.startNumber = pageNo;
+	}
+	if(!isEmpty(pageSize)){
+		pageOPts.pageSize = pageSize;
+	}
+	if(!isEmpty(orgProCalId)){
+		pageOpts.orgProCalId = orgProCalId;
+	}
+	if(!isEmpty(professNumber)){
+		pageOpts.professNumber = professNumber;
+	}
+	if(!isEmpty(searchKey)){
+		pageOpts.searchKey = searchKey;
+		$("#searchKey").val(searchKey);
+	}
+	
+	pageQuery(pageOpts);
+	
+	$("#search").click(function(){
+		var cluster = $(".cluster").val();
+		var dept = $(".part").val();
+		var orgId = 0;
+		if(!isEmpty(cluster)){
+			orgId = Number(cluster);
+		}
+		if(!isEmpty(dept) && dept != 0){
+			orgId = Number(dept);
+		}
+		var professNum = $("#numbers").val();
+		var searchKey = $("#searchKey").val();
+		var pattern = /^[\u4E00-\u9FA5,A-Za-z0-9]*$/;
+		if(!pattern.test(searchKey)){
+			tmLoading("不允许输入非法字符进行搜索 ",1);
+			deal_error("#searchKey");
+			return;
+		}
+		
+		pageOpts.startNumber = 0;
+		pageOpts.pageSize = 10;
+		pageOpts.orgProCalId = orgId;
+		pageOpts.professNumber = professNum;
+		pageOpts.searchKey = searchKey;
+		pageQuery(pageOpts,true);
+	});
+	
+
+});

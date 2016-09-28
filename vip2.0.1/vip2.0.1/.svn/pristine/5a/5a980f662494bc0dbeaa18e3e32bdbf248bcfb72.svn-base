@@ -1,0 +1,140 @@
+package com.moon.vip.controller.student;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.moon.vip.controller.BaseController;
+import com.moon.vip.infra.constants.IsValidType;
+import com.moon.vip.infra.vo.EmployeeLoginVO;
+import com.moon.vip.infra.vo.student.RepeatStudentVO;
+import com.moon.vip.service.student.IRepeatStudentService;
+
+/**
+ * 学员重重复数据（专业编号重复）
+ * RepeatStudentController<BR>
+ * 创建人:娴贵 <BR>
+ * 时间：2015年12月30日-下午9:07:30 <BR>
+ * @version 1.0.0
+ * 
+ */
+@Controller
+@RequestMapping("/student/repeatStudent")
+public class RepeatStudentController extends BaseController{
+	
+	private static Logger logger = Logger.getLogger(RepeatStudentController.class);
+	
+	@Autowired
+	private IRepeatStudentService iRepeatStudentService;
+	
+	
+	/**
+	 * 重复数据页面（针对学员专业编号重复）<BR>
+	 * 方法名：repeatStudentList<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2015年12月31日-下午3:54:51 <BR>
+	 * @return ModelAndView<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping("/repeatStudentList")
+	public ModelAndView repeatStudentList(){
+		ModelAndView modelAndView = new ModelAndView();
+		modelAndView.setViewName("/page/repeatStudent/repeatStudentList");
+		return modelAndView;
+	}
+	
+	/**
+	 * 重复数据模板页<BR>
+	 * 方法名：repeatStudentTemplate<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2015年12月31日-下午3:56:23 <BR>
+	 * @return ModelAndView<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value = "/repeatStudentTemplate", method = {RequestMethod.GET , RequestMethod.POST})
+	public ModelAndView repeatStudentTemplate(RepeatStudentVO repeatStudentVO){
+		ModelAndView modelAndView = new ModelAndView();
+		repeatStudentVO.setOpClaIds(achieveAuth());
+		List<RepeatStudentVO> list = iRepeatStudentService.selectRepeatStudent(repeatStudentVO);
+		for (RepeatStudentVO vo : list) { 
+			if(vo.getIsArrears().equals("N") || "".equals(vo.getIsArrears())){
+				vo.setIsArrears(IsValidType.N_VALUES);
+			}else{
+				vo.setIsArrears(IsValidType.Y_VALUES);
+			}
+			if(vo.getIsRefund().equals("N") || "".equals(vo.getIsRefund())){
+				vo.setIsRefund(IsValidType.N_VALUES);
+			}else{
+				vo.setIsRefund(IsValidType.Y_VALUES);
+			}
+			if(vo.getArrears().intValue() == 0 || vo.getArrears() == null){/***转化尾款0.00***/
+				vo.setArrears(new BigDecimal(0));
+			}
+			if(vo.getRemark() == null || "".equals(vo.getRemark())){
+				vo.setRemark(IsValidType.ZAN_NO);
+			}
+		}
+		int count = iRepeatStudentService.selectRepeatStudentCount(repeatStudentVO);
+		modelAndView.addObject("list", list);
+		modelAndView.addObject("count", count);
+		//modelAndView.addObject("offset", repeatStudentVO.getOffset());
+		modelAndView.setViewName("/page/repeatStudent/repeatStudentTemplate");
+		return modelAndView;
+	}
+	
+	
+	/**
+	 * 获取总数<BR>
+	 * 方法名：repeatStudentTemplateCount<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2016年1月20日-下午5:33:19 <BR>
+	 * @param repeatStudentVO
+	 * @return int<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping("/repeatStudentTemplateCount")
+	@ResponseBody
+	private int repeatStudentTemplateCount(RepeatStudentVO repeatStudentVO) {
+		repeatStudentVO.setOpClaIds(achieveAuth());
+		return iRepeatStudentService.selectRepeatStudentCount(repeatStudentVO);
+	}
+	
+	/**
+	 * 修改重复记录数据<BR>
+	 * 方法名：updateStuProCode<BR>
+	 * 创建人：娴贵 <BR>
+	 * 时间：2016年1月10日-下午3:48:08 <BR>
+	 * @return String<BR>
+	 * @exception <BR>
+	 * @since  1.0.0
+	*/
+	@RequestMapping(value = "/updateStuProCode",method = {RequestMethod.GET,RequestMethod.POST})
+	@ResponseBody
+	public String updateStuProCode(RepeatStudentVO repeatStudentVO,HttpSession session){
+		EmployeeLoginVO employee = (EmployeeLoginVO) session.getAttribute("employee");
+		int j = iRepeatStudentService.selectStuProCode(repeatStudentVO.getId(),repeatStudentVO.getProfessionCode());
+		if(j > 0){
+			return "fail";
+		}else{
+			logger.info("修改学员重复编号人工号："+employee.getEmployeeCode()+",修改时间："+new Date());
+			int i = iRepeatStudentService.updateStuProCode(repeatStudentVO);
+			if(i>0){
+				return "success";
+			}
+		}
+		return "fails";
+	}
+}

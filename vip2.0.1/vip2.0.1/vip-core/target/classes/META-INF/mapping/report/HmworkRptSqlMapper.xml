@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.report.HmworkRptSqlMapper" >
+	<select id="selectWeeklyReport" resultType="com.moon.vip.infra.vo.report.ReportVO">
+	    SELECT s.clsId organizationId,s.`name` organizationName,
+		      round(sum(m.submit_number)/
+		       		 if(sum(m.submit_number)+sum(m.hiatus_number) = 0 ,null,sum(m.submit_number)+sum(m.hiatus_number))
+		       		 ,2) percenage
+		  FROM ( SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId,cla.id claId
+					FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional cla on (pro.id = cla.partent_id and cla.is_valid = 'Y')
+				   WHERE cls.is_valid = 'Y'  
+						AND cls.partent_id = if(#{orgId,jdbcType=INTEGER} = 0, 1,#{orgId,jdbcType=INTEGER} )
+				) s
+                JOIN (
+						SELECT class_id,
+							   sum(submit_number) submit_number, 
+							   sum(hiatus_number) hiatus_number
+						  FROM vip_school_assignment_week
+						 WHERE check_year = YEAR(#{yearWeek,jdbcType=DATE})
+							   AND check_week = WEEKOFYEAR(#{yearWeek,jdbcType=DATE})
+							   <if test="opClaIds != null">
+							   AND class_id  in 
+									  <foreach collection="opClaIds" item="Id" index="index"
+										 open="(" close=")" separator=","> 
+										 #{Id}
+									  </foreach>
+							   </if>
+						 GROUP By class_id
+				) m ON (s.clsId = m.class_id or s.depId = m.class_id or s.proId = m.class_id or s.claId = m.class_id) 
+		   group by s.clsId,s.`name`
+	</select>
+	
+	<select id="selectMonthlyReport" resultType="com.moon.vip.infra.vo.report.ReportVO">
+	    SELECT s.clsId organizationId,s.`name` organizationName,
+		      round(sum(m.submit_number)/
+		       		 if(sum(m.submit_number)+sum(m.hiatus_number) = 0 ,null,sum(m.submit_number)+sum(m.hiatus_number))
+		       		 ,2) percenage
+		  FROM ( SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId,cla.id claId
+					FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional cla on (pro.id = cla.partent_id and cla.is_valid = 'Y')
+				   WHERE cls.is_valid = 'Y'  
+						AND cls.partent_id = if(#{orgId,jdbcType=INTEGER} = 0, 1,#{orgId,jdbcType=INTEGER} )
+				) s
+                JOIN (
+		                SELECT class_id,
+							   sum(submit_number) submit_number, 
+							   sum(hiatus_number) hiatus_number
+						  FROM vip_school_assignment_month a
+						 WHERE check_year= YEAR(#{yearMonth,jdbcType=DATE})
+							   AND check_month = MONTH(#{yearMonth,jdbcType=DATE})
+							    <if test="opClaIds != null">
+							   AND class_id  in 
+										  <foreach collection="opClaIds" item="Id" index="index"
+											 open="(" close=")" separator=","> 
+											 #{Id}
+										  </foreach>
+							   </if>
+				         GROUP By class_id
+				) m ON (s.clsId = m.class_id or s.depId = m.class_id or s.proId = m.class_id or s.claId = m.class_id) 
+		   group by s.clsId,s.`name`
+	</select>
+	
+	<select id="selectYearlyReport" resultType="com.moon.vip.infra.vo.report.ReportVO">
+		SELECT s.clsId organizationId,s.`name` organizationName,
+			      round(sum(m.submit_number)/
+			       		 if(sum(m.submit_number)+sum(m.hiatus_number) = 0 ,null,sum(m.submit_number)+sum(m.hiatus_number))
+			       		 ,2) percenage
+		  FROM ( SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId,cla.id claId
+					FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional cla on (pro.id = cla.partent_id and cla.is_valid = 'Y')
+				   WHERE cls.is_valid = 'Y'  
+						AND cls.partent_id = if(#{orgId,jdbcType=INTEGER} = 0, 1,#{orgId,jdbcType=INTEGER} )
+				) s
+                JOIN (
+			            SELECT class_id,
+							   sum(submit_number) submit_number, 
+							   sum(hiatus_number) hiatus_number
+						  FROM vip_school_assignment_year a
+						 WHERE check_year= YEAR(#{year,jdbcType=DATE})
+						  	   <if test="opClaIds != null">
+							   AND class_id  in 
+										  <foreach collection="opClaIds" item="Id" index="index"
+											 open="(" close=")" separator=","> 
+											 #{Id}
+										  </foreach>
+							   </if>
+						GROUP BY class_id
+				) m ON (s.clsId = m.class_id or s.depId = m.class_id or s.proId = m.class_id or s.claId = m.class_id) 
+		   group by s.clsId,s.`name`
+	</select>
+	
+	<select id="selectTimesRangeReport" resultType="com.moon.vip.infra.vo.report.ReportVO">
+		SELECT s.clsId organizationId,s.`name` organizationName,
+			      round(sum(m.submit_number)/
+			       		 if(sum(m.submit_number)+sum(m.hiatus_number) = 0 ,null,sum(m.submit_number)+sum(m.hiatus_number))
+			       		 ,2) percenage
+		  FROM ( SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId,cla.id claId
+					FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y')
+						 LEFT JOIN vip_organizational_professional cla on (pro.id = cla.partent_id and cla.is_valid = 'Y')
+				   WHERE cls.is_valid = 'Y'  
+						AND cls.partent_id = if(#{orgId,jdbcType=INTEGER} = 0, 1,#{orgId,jdbcType=INTEGER} )
+				) s
+                JOIN (
+			            SELECT class_id,
+							   sum(submit_number) submit_number, 
+							   sum(hiatus_number) hiatus_number
+						  FROM vip_school_assignment_class a
+						 WHERE check_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+							   AND check_date <![CDATA[<]]> #{endDate,jdbcType=DATE}
+							   <if test="opClaIds != null">
+							   AND class_id  in 
+										  <foreach collection="opClaIds" item="Id" index="index"
+											 open="(" close=")" separator=","> 
+											 #{Id}
+										  </foreach>
+							   </if>
+						 GROUP By class_id
+				) m ON (s.clsId = m.class_id or s.depId = m.class_id or s.proId = m.class_id or s.claId = m.class_id) 
+		   group by s.clsId,s.`name`
+	</select>
+	
+	<delete id="deleteWeeklyReport">
+	    DELETE FROM vip_school_assignment_week
+		 WHERE check_year = YEAR(#{yearWeek,jdbcType=DATE})
+			   AND check_week = WEEKOFYEAR(#{yearWeek,jdbcType=DATE})	               
+	</delete>
+	
+	<delete id="deleteMonthlyReport">
+	    DELETE FROM vip_school_assignment_month
+		 WHERE check_year = YEAR(#{yearMonth,jdbcType=DATE})
+			   AND check_month = MONTH(#{yearMonth,jdbcType=DATE}) 
+	</delete>
+	
+	<delete id="deleteYearlyReport">
+		DELETE FROM vip_school_assignment_year
+		 WHERE check_year = YEAR(#{year,jdbcType=DATE})
+	</delete>
+	
+	<insert id="insertWeeklyReport">
+	    INSERT INTO vip_school_assignment_week(profession_id,class_id,check_year,check_week,submit_number,hiatus_number,create_time)
+		SELECT profession_id,class_id,YEAR(check_date),WEEKOFYEAR(check_date), SUM(submit_number), SUM(hiatus_number), now()
+		  from vip_school_assignment_class
+		 WHERE check_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+		       AND check_date  <![CDATA[<]]> #{endDate,jdbcType=DATE}
+		 GROUP BY profession_id,class_id,YEAR(check_date),WEEKOFYEAR(check_date)
+	</insert>
+	
+	<insert id="insertMonthlyReport">
+	    INSERT INTO vip_school_assignment_month(profession_id,class_id,check_year,check_month,submit_number,hiatus_number,create_time)
+		SELECT profession_id,class_id,YEAR(check_date),MONTH(check_date), SUM(submit_number), SUM(hiatus_number), now()
+		  from vip_school_assignment_class
+		 WHERE check_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+		       AND check_date  <![CDATA[<]]> #{endDate,jdbcType=DATE}
+		 GROUP BY profession_id,class_id,YEAR(check_date),MONTH(check_date)
+	</insert>
+	
+	<insert id="insertYearlyReport">
+	    INSERT INTO vip_school_assignment_year(profession_id,class_id,check_year,submit_number,hiatus_number,create_time)
+	    SELECT profession_id,class_id,check_year, SUM(submit_number), SUM(hiatus_number), now()
+	      FROM vip_school_assignment_month
+	     WHERE check_year = #{year,jdbcType=VARCHAR}
+	     GROUP BY profession_id,class_id,check_year
+	</insert>
+	
+</mapper>

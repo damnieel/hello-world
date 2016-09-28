@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.RepeatStudentSqlMapper" >
+    
+  <!-- 查找学员抓也编号数据重复多条数据列表（针对专业） -->
+  <select id="selectRepeatStudent" resultType="com.moon.vip.infra.vo.student.RepeatStudentVO">
+    SELECT p.ID AS id,p.profession_code AS professionCode,a.`name` AS stuName,o.`name` AS course,
+    p.op_pro_id AS opProId,p.amount_payable AS amountPayable,p.payment AS payment,p.arrears AS arrears,
+	a.telephone AS telephone,a.QQ AS QQ,p.enter_date AS enterDate, p.is_arrears AS isArrears,
+	p.is_refund AS isRefund, p.`status` AS statues,p.remark AS remark
+	FROM vip_student_archives a,vip_student_professional p,vip_organizational_professional o
+	<where>
+		a.ID =p.student_id AND p.op_pro_id = o.ID AND p.is_valid ='Y'  AND a.is_valid = 'Y' AND o.is_valid ='Y'
+		<if test="startTime !=null and startTime !='' ">
+		    <![CDATA[ AND ( p.enter_date >= #{startTime}) ]]>
+	    </if>
+	    <if test="endTime !=null and endTime !='' ">
+	        <![CDATA[  AND ( p.enter_date <= #{endTime})]]>
+	    </if>
+	    <if test="keyword !=null and keyword !='' ">
+		    AND (a.`name` like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  a.telephone like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  a.QQ like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  p.profession_code like CONCAT(CONCAT('%',#{keyword}),'%'))
+	    </if>
+	     AND o.ID in
+			<foreach collection="opClaIds" item="Id" index="index"
+		       				 open="(" close=")" separator=","> 
+		    	  #{Id}	
+			</foreach>
+	 	<if test="searchOpClaIds != null" >
+			AND o.ID in
+			<foreach collection="searchOpClaIds" item="Id" index="index"
+	     					 open="(" close=")" separator=","> 
+	     	  #{Id}	
+	       </foreach>
+	    </if>
+	    AND p.profession_code in (SELECT stuPro.profession_code
+	                              FROM
+		                            vip_student_professional stuPro,
+                                    vip_organizational_professional org
+	                              WHERE
+	                                stuPro.is_valid = 'Y' 
+                                  AND stuPro.op_pro_id = org.ID
+                                  AND org.is_valid ='Y'
+                                  AND (profession_code is NOT NULL or profession_code != '')
+								  GROUP BY
+									  stuPro.profession_code
+								  HAVING
+									COUNT(1) > 1)
+	</where>
+	ORDER BY p.profession_code DESC
+	LIMIT #{offset},#{pageSize};
+  </select>
+  
+  <!-- 查询重复记录总数 -->
+  <select id="selectRepeatStudentCount" resultType="java.lang.Integer" parameterType="com.moon.vip.infra.vo.student.RepeatStudentVO">
+    SELECT COUNT(*)
+	FROM vip_student_archives a,vip_student_professional p,vip_organizational_professional o
+	<where>
+		a.ID =p.student_id AND p.op_pro_id = o.ID AND p.is_valid ='Y'  AND a.is_valid = 'Y' AND o.is_valid ='Y'
+		<if test="startTime !=null and startTime !='' ">
+		    <![CDATA[ AND ( p.enter_date >= #{startTime}) ]]>
+	    </if>
+	    <if test="endTime !=null and endTime !='' ">
+	        <![CDATA[  AND ( p.enter_date <= #{endTime})]]>
+	    </if>
+	    <if test="keyword !=null and keyword !='' ">
+		    AND (a.`name` like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  a.telephone like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  a.QQ like CONCAT(CONCAT('%',#{keyword}),'%')
+		     OR  p.profession_code like CONCAT(CONCAT('%',#{keyword}),'%'))
+	    </if>
+	        AND o.ID in
+			<foreach collection="opClaIds" item="Id" index="index"
+		       				 open="(" close=")" separator=","> 
+		    	  #{Id}	
+			</foreach>
+	 	<if test="searchOpClaIds != null" >
+			AND o.ID in
+			<foreach collection="searchOpClaIds" item="Id" index="index"
+	     					 open="(" close=")" separator=","> 
+	     	  #{Id}	
+	       </foreach>
+	    </if>
+	     AND p.profession_code in (SELECT stuPro.profession_code
+	                              FROM
+		                            vip_student_professional stuPro,
+                                    vip_organizational_professional org
+	                              WHERE
+	                                stuPro.is_valid = 'Y' 
+                                  AND stuPro.op_pro_id = org.ID
+                                  AND org.is_valid ='Y'
+                                  AND (profession_code is NOT NULL or profession_code != '')
+								  GROUP BY
+									  stuPro.profession_code
+								  HAVING
+									COUNT(1) > 1)
+	</where>
+  </select>
+  
+  
+  <!-- 修改重复数据 （针对专业） -->
+  <update id="updateStuProCode" parameterType="com.moon.vip.infra.vo.student.RepeatStudentVO" >
+     UPDATE vip_student_professional SET profession_code =#{professionCode,jdbcType=VARCHAR} WHERE ID =#{id};
+  </update>
+  
+  <!-- 查找修改后的学员专业编号是否存在 -->
+  <select id="selectStuProCode" resultType="java.lang.Integer">
+     select COUNT(profession_code) from vip_student_professional  
+    <where>
+        profession_code=#{professionCode,jdbcType=VARCHAR} AND is_valid ='Y' 
+        <if test="id != null">
+          and ID != #{id};
+        </if>
+    </where>
+  </select>
+  
+</mapper>

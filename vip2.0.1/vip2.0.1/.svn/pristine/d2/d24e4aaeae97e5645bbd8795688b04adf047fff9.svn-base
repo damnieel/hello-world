@@ -1,0 +1,252 @@
+package com.moon.vip.service.impl.student;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.moon.vip.application.student.ProfessionalMapper;
+import com.moon.vip.application.student.RepeatStudentSqlMapper;
+import com.moon.vip.application.student.StudentArchivesSqlMapper;
+import com.moon.vip.infra.vo.student.ClassVO;
+import com.moon.vip.infra.vo.student.CourseVO;
+import com.moon.vip.infra.vo.student.StuProfessionalVO;
+import com.moon.vip.infra.vo.student.StudentCodeVO;
+import com.moon.vip.infra.vo.student.StudentVO;
+import com.moon.vip.service.student.IStudentArchivesService;
+import com.moon.vip.service.sys.IOrgProfessionalService;
+
+/**
+ * 学员信息模块与重复数据模块
+ * StudentArchivesServiceImpl<BR>
+ * 创建人:娴贵 <BR>
+ * 时间：2015年12月28日-下午8:55:01 <BR>
+ * @version 1.0.0
+ * 
+ */
+@Service("StudentArchivesService")
+public class StudentArchivesServiceImpl implements IStudentArchivesService{
+	private static Logger logger = Logger.getLogger(StudentArchivesServiceImpl.class);
+	
+	@Autowired
+	private StudentArchivesSqlMapper studentArchivesSqlMapper;
+	@Autowired 
+	private ProfessionalMapper professionalMapper;
+	@Autowired
+	private RepeatStudentSqlMapper repeatStudentSqlMapper;
+ 	
+	@Autowired
+	private IOrgProfessionalService iOrgProfessionalService;
+
+	/***解析组织机构**/
+	private StudentVO convertOrgId(StudentVO studentVO){
+		if(studentVO.getOrganizationId() != null) {
+			studentVO.setSearchOpClaIds(
+					iOrgProfessionalService.covertOrgSearch(studentVO.getOrganizationId()));
+		}
+		return studentVO;
+	}
+	
+	/***学员信息展示列表***/
+	public List<StudentVO> selectAllStudent(StudentVO studentVO) {
+		studentVO = convertOrgId(studentVO);
+		return studentArchivesSqlMapper.selectAllStudent(studentVO);
+	}
+
+	/***查询该学员是否有欠款课程专业***/
+	public int selectIsRefund(Integer id) {
+		return studentArchivesSqlMapper.selectIsRefund(id);
+	}
+
+	/*** 查询学员总数***/
+    public int selectAllStudentCount(StudentVO studentVO){
+		studentVO = convertOrgId(studentVO);
+    	return studentArchivesSqlMapper.selectAllStudentCount(studentVO);
+    }
+	/***查询个人信息详情***/
+	public StudentVO selectStuDetail(Integer id) {
+		return studentArchivesSqlMapper.selectStuDetail(id);
+	}
+
+	/***根据学员id查询专业详情***/
+	public List<CourseVO> selectCourseDetail(CourseVO courseVO) {
+		return studentArchivesSqlMapper.selectCourseDetail(courseVO);
+	}
+
+    /***从码表获取下拉值（用于查看学员个人学历详情）***/
+    public StudentVO selectByDegree(String educationBackgroundKey){
+    	return studentArchivesSqlMapper.selectByDegree(educationBackgroundKey);
+    }
+    
+    /***从码表获取下拉值（用于查看学员个人职业详情）***/
+    public StudentVO selectByProfessional(String occupationCodeKey){
+    	return studentArchivesSqlMapper.selectByProfessional(occupationCodeKey);
+    }
+    
+    /***从码表获取下拉值（用于查看学员专业退费详情）***/
+    public CourseVO selectByRefundReason(String refundReason){
+    	return studentArchivesSqlMapper.selectByRefundReason(refundReason);
+    }
+
+    /***从码表获取下拉值(用于查看学员专业支付详情)***/
+    public CourseVO selectByPayment(String payment){
+    	return studentArchivesSqlMapper.selectByPayment(payment);
+    }
+
+	/***添加个人学员信息表***/
+	public int insertStuArchives(StudentVO studentVO) {
+		return studentArchivesSqlMapper.insertStuArchives(studentVO);
+	}
+	
+	/***修改学员信息表***/
+	public int updateStuArchives(StudentVO studentVO) {
+		return studentArchivesSqlMapper.updateStuArchives(studentVO);
+	}
+	
+	/***修改学员专业表信息***/
+	public int updateStuProfessional(StuProfessionalVO stuProfessionalVO) {
+		return studentArchivesSqlMapper.updateStuProfessional(stuProfessionalVO);
+	}
+
+	/***添加学员专业信息***/
+	public int insertStuProfessional(List<StuProfessionalVO> stuProfessionalVO) {
+		return studentArchivesSqlMapper.insertStuProfessional(stuProfessionalVO);
+	}
+
+	/***查询学员编号的最大值***/
+	public StudentCodeVO selectStudentCodeMax() {
+		return studentArchivesSqlMapper.selectStudentCodeMax();
+	}
+	
+	/***查询学员编号的最大值(传当前时间)***/
+	public String selectStudentCode() {
+	   String message ="";
+	   StudentCodeVO codeVO = new StudentCodeVO(); 
+	   codeVO.setStudentCodeTime(new Date());
+	   SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM");
+	   StudentCodeVO student = selectStudentCodeMax();/**查询最大学员编号**/
+	   if(student == null ){/***系统没有编号，添加一条 （时间+编号）**/
+		   codeVO.setStudentCodeNumber(1);
+		   insertStudentCodeMax(codeVO);
+		   String s = sdf.format(new Date());
+		   String[] sss = s.split("-");
+		   message ="TZs"+sss[0]+sss[1]+1;
+		   return message;
+	   }else{/**存在的记录的时间**/
+		    String s1 = sdf.format(student.getStudentCodeTime());
+		    String s2 = sdf.format(new Date());/**当前时间**/
+		    String[] s11 = s1.split("-");
+		    String[] s22 = s2.split("-");
+			if(Integer.valueOf(s11[0]) <= Integer.valueOf(s22[0])){
+				 if(Integer.valueOf(s11[0]) - Integer.valueOf(s22[0]) == 0){/**年份相同**/
+					     if((Integer.valueOf(s22[1]) - Integer.valueOf(s11[1]))>0){/**比较月份不同**/
+					    	   codeVO.setStudentCodeNumber(1);
+							   insertStudentCodeMax(codeVO);
+							   message ="TZs"+s22[0]+s22[1]+1;
+							   return message;
+					      }else{/**月份相同**/
+					    	   codeVO.setId(student.getId());
+					    	   codeVO.setStudentCodeNumber(student.getStudentCodeNumber()+1);
+							   updateStudentCodeMax(codeVO);
+							   message ="TZs"+s22[0]+s22[1]+(student.getStudentCodeNumber()+1);
+							   int count =selectStudentCode(message);
+								 /***判断生成的学员编号是否存在***/
+							   if(count > 0){
+									for(int bb = codeVO.getStudentCodeNumber()+1;bb < 50000;bb++){
+										message = "TZs"+s22[0]+s22[1]+bb;
+										int counts = selectStudentCode(message);
+										if(counts == 0){
+											codeVO.setStudentCodeNumber(bb);;
+											updateStudentCodeMax(codeVO);
+											message = "TZs"+s22[0]+s22[1]+bb;
+											return message;
+										}
+									}
+								 }
+							   return message;
+						  }
+				   }else{/***年份不同***/
+					     message = year(codeVO, s22);
+			      }
+			}
+			
+	   }
+		return message;
+	}
+	
+	/***年份不同***/
+	private String year(StudentCodeVO codeVO, String[] s22) {
+		String message;
+		codeVO.setStudentCodeNumber(1);
+		 codeVO.setStudentCodeTime(new Date());
+		 insertStudentCodeMax(codeVO);
+		 StudentCodeVO students = selectStudentCodeMax();
+		 message = "TZs"+s22[0]+s22[1]+1;
+		 int count =selectStudentCode(message);
+		 /***判断生成的学员编号是否存在***/
+		 if(count > 0){
+			for(int bb = codeVO.getStudentCodeNumber()+1;bb < 50000;bb++){
+				message = "TZs"+s22[0]+s22[1]+bb;
+				int counts =selectStudentCode(message);
+				if(counts == 0){
+					codeVO.setStudentCodeNumber(bb);
+					codeVO.setId(students.getId());
+					updateStudentCodeMax(codeVO);
+					message = "TZs"+s22[0]+s22[1]+bb;
+					return message;
+				}
+			}
+		 }
+		return message;
+	}
+	
+	/***修改学员编号，专业编号的最大值***/
+	public int updateStudentCodeMax(StudentCodeVO studentCodeVO) {
+		return studentArchivesSqlMapper.updateStudentCodeMax(studentCodeVO);
+	}
+
+	/***添加学员编号，专业编号的最大值***/
+	public int insertStudentCodeMax(StudentCodeVO studentCodeVO) {
+		return studentArchivesSqlMapper.insertStudentCodeMax(studentCodeVO);
+	}
+
+	/***查询所有的专业***/
+	public List<ClassVO> selectCourse(String courseName) {
+		return studentArchivesSqlMapper.selectCourse(courseName);
+	}
+	
+	/*** 根据专业id查询专业 ***/
+    public ClassVO selectCourseById(Integer id){
+    	return studentArchivesSqlMapper.selectCourseById(id);
+    }
+
+	/***查询是否保存了学员基础信息***/
+	public StudentVO selectPersonalDetail(StudentVO studentVO) {
+		return studentArchivesSqlMapper.selectPersonalDetail(studentVO);
+	}
+
+	/***删除课程专业信息***/
+	public int deleteCourse(Integer pId) {
+		return studentArchivesSqlMapper.deleteCourse(pId);
+	}
+
+	/***查询生成的学员编号是否存在***/
+	public int selectStudentCode(String codeNo) {
+		return studentArchivesSqlMapper.selectStudentCode(codeNo);
+	}
+
+	/***查询是否存在该学员信息***/
+	public int selectPersonalDetailCount(StudentVO studentVO) {
+		return studentArchivesSqlMapper.selectPersonalDetailCount(studentVO);
+	}
+
+    /***删除身份证图片信息***/
+	public int deleteImg(Integer stuId, String parms) {
+		return studentArchivesSqlMapper.deleteImg(stuId,parms);
+	}
+
+
+}

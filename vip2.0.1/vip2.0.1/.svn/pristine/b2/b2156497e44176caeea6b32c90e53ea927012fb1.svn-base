@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.ArchProfOrgProfClassSqlMapper" >
+ 	<!-- 搜索模块的sql -->
+ 	<sql id="searchSql">
+	 	<if test="startDate != null" >
+	        AND date(prof.enter_date) <![CDATA[>=]]> #{startDate , jdbcType=DATE}
+	    </if>
+	 	<if test="endDate != null" >
+	        AND date(prof.enter_date) <![CDATA[<=]]> #{endDate , jdbcType=DATE}
+	    </if>	    
+	 	<if test="startChangeTime != null" >
+	        AND prof.change_time <![CDATA[>=]]> #{startChangeTime , jdbcType=DATE}
+	    </if>
+	 	<if test="endChangeTime != null" >
+	        AND prof.change_time <![CDATA[<=]]> #{endChangeTime , jdbcType=DATE}
+	    </if>
+	 	<if test="gradeStatue != null" >
+			AND class.STATUS = #{gradeStatue , jdbcType=VARCHAR}
+	    </if>
+	 	<if test="statue != null" >
+			AND prof.`status` = #{statue , jdbcType=VARCHAR}
+	    </if>
+	 	<if test="isArrears != null" >
+			AND prof.is_arrears = #{isArrears , jdbcType=VARCHAR}
+	    </if>
+	 	<if test="isRefund != null" >
+			AND prof.is_refund = #{isRefund , jdbcType=VARCHAR}
+	    </if>
+	    <if test="existClass == true">
+	    	AND	class.op_cla_id in
+				<foreach collection="opClaIds" item="Id" index="index"
+         					 open="(" close=")" separator=","> 
+         		  #{Id}	
+ 		        </foreach>
+ 		    
+		 	<if test="searchOpClaIds != null" >
+				AND class.op_cla_id in
+				<foreach collection="searchOpClaIds" item="Id" index="index"
+         					 open="(" close=")" separator=","> 
+         		  #{Id}	
+ 		        </foreach>
+				
+		    </if>
+		</if>
+	    <if test="existClass == false">	 
+ 			AND	prof.op_pro_id in
+				<foreach collection="opClaIds" item="Id" index="index"
+          				 open="(" close=")" separator=","> 
+          		  #{Id}	
+  		        </foreach>
+  		    
+		 	<if test="searchOpClaIds != null" >
+				AND prof.op_pro_id in
+				<foreach collection="searchOpClaIds" item="Id" index="index"
+         					 open="(" close=")" separator=","> 
+         		  #{Id}	
+ 		        </foreach>
+				
+		    </if>
+		</if>
+	 	<if test="keyWord != null" >
+			AND (
+				prof.profession_code like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR arch.NAME like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR arch.telephone like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR arch.QQ like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+			)
+	    </if>
+ 	</sql>
+ 	
+ 	<!-- 查找所有未分班学员的信息 大枫 -->
+ 	<select id="selectUndivStudent" resultType="com.moon.vip.infra.vo.onReadPage.OnReadPageStudentsVO"
+ 						parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO">
+	SELECT
+		arch.ID AS id,
+		prof.profession_code as codeNo,
+		arch.NAME,
+		orgProf.NAME as professionName,
+		orgProf.ID as professionOrgId,
+		prof.ID as professionId,
+		prof.amount_payable as amountPayable,
+		prof.payment,
+		prof.arrears,
+		arch.telephone,
+		arch.QQ,
+		prof.enter_date as enterDate,
+		prof.is_arrears as isArrears, 
+		prof.is_refund as isRefund,
+		<!-- codeIsArray.code_value as isArrears,
+		codeisRefund.code_value as isRefund, -->
+		prof.remark
+	FROM
+		vip_student_archives arch,
+		vip_organizational_professional orgProf,
+		vip_student_professional prof
+		<!-- ,
+		vip_code_table codeIsArray,
+		vip_code_table codeisRefund -->
+	WHERE
+		prof.op_pro_id = orgProf.ID
+	AND arch.is_valid = 'Y'
+	AND prof.is_valid = 'Y'
+	AND orgProf.is_valid = 'Y'
+	AND prof.student_id = arch.ID
+	AND prof.`status` != 'drop' 
+	AND prof.status != 'pause' 
+	AND NOT EXISTS (
+		SELECT
+			class.is_valid
+		FROM
+			vip_student_class class
+		WHERE
+			prof.student_id = class.student_id
+		AND prof.op_pro_id = class.op_pro_id
+		AND class.is_valid='Y' 
+	) 
+	
+<!-- 	AND codeIsArray.type='yesOrNo'
+	AND codeisRefund.type='yesOrNo'
+	AND codeIsArray.is_valid = 'Y'
+	AND codeisRefund.is_valid = 'Y' 
+	AND prof.is_arrears = codeIsArray.code_key
+	AND prof.is_refund = codeisRefund.code_key -->
+	<include refid="searchSql"/>
+	order by prof.enter_date desc
+	LIMIT #{pageNo, jdbcType=INTEGER}, #{pSize, jdbcType=INTEGER};
+ 	</select>
+ 	<!-- 获取未分班总数 -->
+ 	<select id="selectUndivStudentCount" resultType="java.lang.Integer"
+ 			parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO">
+	SELECT
+		count(1)
+	FROM
+		vip_student_archives arch,
+		vip_organizational_professional orgProf,
+		vip_student_professional prof
+<!-- 		vip_code_table codeIsArray,
+		vip_code_table codeisRefund -->
+	WHERE
+		prof.op_pro_id = orgProf.ID
+	AND arch.is_valid = 'Y'
+	AND prof.is_valid = 'Y'
+	AND orgProf.is_valid = 'Y'
+	AND prof.student_id = arch.ID
+	AND prof.`status` != 'drop' 
+	AND prof.status != 'pause' 
+	AND NOT EXISTS (
+		SELECT
+			class.is_valid
+		FROM
+			vip_student_class class
+		WHERE
+			prof.student_id = class.student_id
+		AND prof.op_pro_id = class.op_pro_id
+		AND class.is_valid='Y' 
+	) 
+	
+<!-- 	AND codeIsArray.type='yesOrNo'
+	AND codeisRefund.type='yesOrNo'
+	AND codeIsArray.is_valid = 'Y'
+	AND codeisRefund.is_valid = 'Y'
+	AND prof.is_arrears = codeIsArray.code_key
+	AND prof.is_refund = codeisRefund.code_key -->
+	<include refid="searchSql"/>
+ 	</select>
+ 	<!-- 查找所有已分班学员的信息  大枫-->
+ 	<select id="selectDivedStudent" resultType="com.moon.vip.infra.vo.onReadPage.OnReadPageStudentsVO"
+ 				parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO">
+	SELECT
+		arch.ID AS id,
+		prof.profession_code AS codeNo,
+		arch. NAME,
+		orgProf.NAME AS professionName,
+		orgProf.ID as professionOrgId,
+		prof.ID as professionId,
+		prof.amount_payable AS amountPayable,
+		prof.payment,
+		prof.arrears,
+		arch.telephone,
+		arch.QQ,
+		prof.enter_date AS enterDate,
+		prof.is_arrears as isArrears, 
+		prof.is_refund as isRefund,
+		class.status as gradeStatue,
+<!-- 		codeIsArray.code_value AS isArrears,
+		codegradeStatue.code_value as gradeStatue,
+		codeisRefund.code_value AS isRefund, -->
+		class.`status`,
+		class.remark,
+		class.ID as gradeId, 
+		class.op_cla_id as gradeOrgId, 
+		orgProf2.name as gradeName,
+		class.create_time as gradeCreateTime
+	FROM
+		vip_student_archives arch,
+		vip_student_class class,
+		vip_organizational_professional orgProf,
+		vip_organizational_professional orgProf2,
+		vip_student_professional prof
+<!-- 		,
+		vip_code_table codegradeStatue,
+		vip_code_table codeIsArray,
+		vip_code_table codeisRefund -->
+	WHERE
+		class.student_id = arch.ID
+	AND class.op_pro_id = prof.op_pro_id
+	AND prof.op_pro_id = orgProf.ID
+	AND prof.student_id = arch.ID
+	AND orgProf2.ID = class.op_cla_id
+	AND class.op_cla_id IS NOT NULL
+	AND arch.is_valid = 'Y'
+	AND prof.is_valid = 'Y'
+	AND orgProf.is_valid = 'Y'
+	AND class.is_valid = 'Y'
+	AND  (
+	prof.`status` != 'drop'
+	AND prof.`status` != 'pause'
+	)
+	
+<!-- 	AND codeIsArray.type='yesOrNo'
+	AND codeisRefund.type='yesOrNo'
+	AND codegradeStatue.type='gradeStatus'
+	AND codeIsArray.is_valid = 'Y'
+	AND codeisRefund.is_valid = 'Y'
+	AND codegradeStatue.is_valid = 'Y'
+	AND prof.is_arrears = codeIsArray.code_key
+	AND prof.is_refund = codeisRefund.code_key
+	AND class.status = codegradeStatue.code_key -->
+	
+	<include refid="searchSql"/>
+	order by class.create_time DESC
+	<!-- LIMIT #{pageNo, jdbcType=INTEGER}, #{pSize, jdbcType=INTEGER}; -->
+ 	</select>
+ 	<!-- 查找所有已分班学员的信息  大枫-->
+ 	<select id="selectDivedStudentCount" resultType="java.lang.Integer"
+ 			parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO">
+	SELECT
+		COUNT(1)
+	FROM
+		(
+			SELECT
+				count(1)
+			FROM
+				vip_student_archives arch,
+				vip_student_class class,
+				vip_organizational_professional orgProf,
+				vip_organizational_professional orgProf2,
+				vip_student_professional prof
+				<!-- ,
+				vip_code_table codegradeStatue,
+				vip_code_table codeIsArray,
+				vip_code_table codeisRefund -->
+			WHERE
+				class.student_id = arch.ID
+			AND class.op_pro_id = prof.op_pro_id
+			AND prof.op_pro_id = orgProf.ID
+			AND prof.student_id = arch.ID
+			AND orgProf2.ID = class.op_cla_id
+			AND class.op_cla_id IS NOT NULL
+			AND arch.is_valid = 'Y'
+			AND prof.is_valid = 'Y'
+			AND orgProf.is_valid = 'Y'
+			AND class.is_valid = 'Y'
+			AND (
+				prof.`status` != 'drop'
+				AND prof.`status` != 'pause'
+			)
+			<!-- AND codeIsArray.type = 'yesOrNo'
+			AND codeisRefund.type = 'yesOrNo'
+			AND codegradeStatue.type = 'gradeStatus'
+			AND codeIsArray.is_valid = 'Y'
+			AND codeisRefund.is_valid = 'Y'
+			AND codegradeStatue.is_valid = 'Y'
+			AND prof.is_arrears = codeIsArray.code_key
+			AND prof.is_refund = codeisRefund.code_key
+			AND class. STATUS = codegradeStatue.code_key -->
+			<include refid="searchSql"/>
+			GROUP BY
+ 				prof.profession_code,
+				prof.student_id
+		) a;
+ 	</select>
+ 	<!-- 查找非在读学员的总数  大枫 -->
+ 	<select id="selectNotReadStudentCount" resultType="java.lang.Integer">
+ 	SELECT
+		COUNT(1)
+	FROM
+		vip_student_archives arch,
+		vip_student_professional prof,
+		vip_organizational_professional orgProf
+	WHERE
+		(
+			prof.`status` = 'drop'
+			OR prof.`status` = 'pause'
+		)
+	AND arch.ID = prof.student_id
+	AND prof.op_pro_id = orgProf.ID
+	AND orgProf.type = 'pro'
+	AND orgProf.is_valid='Y'
+	AND arch.is_valid = 'Y'
+	AND prof.is_valid = 'Y'
+	<include refid="searchSql"/>
+	;
+ 	</select> 	
+ 	<!-- 查找非在读学员的详细信息 大枫 -->
+ 	<select id="selectNotReadStudent" parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO" 
+ 		resultType="com.moon.vip.infra.vo.onReadPage.OnReadPageStudentsVO">
+ 	SELECT		
+		arch.ID AS id,
+		prof.profession_code as codeNo,
+		arch.NAME,
+		orgProf.NAME as professionName,
+		orgProf.ID as professionOrgId,
+		prof.ID as professionId,
+		prof.amount_payable as amountPayable,
+		prof.payment,
+		prof.arrears,
+		arch.telephone,
+		arch.QQ,
+		prof.enter_date as enterDate,
+		prof.is_arrears as isArrears, 
+		prof.status as codeStatus,
+<!-- 		codeIsArray.code_value AS isArrears,
+		codeProfStatus.code_value as codeStatus, -->
+		prof.is_refund as isRefund,
+		prof.remark,
+		prof.change_time as changeTime,
+		prof.status as status,
+		prof.change_reason as changeReason
+	FROM
+		vip_student_archives arch,
+		vip_student_professional prof,
+		<!-- 
+		vip_code_table codeIsArray,
+		vip_code_table codeProfStatus, -->
+		vip_organizational_professional orgProf
+	WHERE
+		(
+			prof.`status` = 'drop'
+			OR prof.`status` = 'pause'
+		)
+	AND arch.ID = prof.student_id
+	AND prof.op_pro_id = orgProf.ID
+	AND orgProf.type = 'pro'
+	AND orgProf.is_valid='Y'
+	AND arch.is_valid = 'Y'
+	AND prof.is_valid = 'Y'
+	
+<!-- 	AND codeIsArray.type='yesOrNo'
+	AND codeProfStatus.type='profStatus'
+	AND codeIsArray.is_valid = 'Y'
+	AND codeProfStatus.is_valid = 'Y'
+	AND prof.is_arrears = codeIsArray.code_key
+	AND prof.status = codeProfStatus.code_key -->
+	
+	<include refid="searchSql"/>
+	order by prof.change_time desc
+	LIMIT #{pageNo, jdbcType=INTEGER}, #{pSize, jdbcType=INTEGER}
+	;
+ 	</select>
+</mapper>

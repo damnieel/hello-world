@@ -1,0 +1,424 @@
+var resultarr = new Array();
+
+/**
+ * 获取未分班学员
+ */
+function getUndivStudentCount(){
+	tmLoading("加载中...");
+	delLocalCookie("pageId");
+	$("#gradeStatue").hide();
+	$("#gradeStatue").val(0);
+	var sendData = getSearchVO();	
+	$.post(basePath+"admin/divideGrade/getUndivStudentDataCount.htmls",sendData,function(data){
+		count = eval("("+data+")");
+		setCookie("onReadPageCookie", "undiv");			
+		tm_init_page(count);		
+		
+		
+		$(".professional").on("click", function(){
+			$(".class").hide();
+		})
+		$("#dividGrade").show();
+		$("#divided").removeAttr("class").siblings().attr("class", "oncurrent");
+		setTimeout(function(){//绑定删除事件
+			$("#deleteStu").text("删除");
+			$("#deleteStu").unbind("click");
+			$("#deleteStu").click(delUndiv);
+		}, 200);
+	});
+}
+/**
+ * 获取已分班学员
+ */
+function getDivedStudentCount(){
+	tmLoading("加载中...");
+	delLocalCookie("pageId");
+	$("#gradeStatue").show();
+	
+	var sendData = getSearchVO();	
+	$.post(basePath+"admin/divideGrade/getDivedStudentDataCount.htmls",sendData,function(data){
+		count = eval("("+data+")");
+		setCookie("onReadPageCookie", "dived");	
+		tm_init_page(count);
+				
+		$(".professional").off("click");	
+		$("#dividGrade").hide();
+		$("#unDivided").removeAttr("class").siblings().attr("class", "oncurrent");
+		setTimeout(function(){//绑定删除事件
+			$("#deleteStu").text("取消分班");
+			$("#deleteStu").unbind("click");
+			$("#deleteStu").click(delDived);
+		}, 200);
+	});
+}
+/**
+ * 未分班的删除功能
+ */
+function delUndiv() {
+	var checkData = getData("id", "name", "profid","proforgid");	
+	if(isEmptyObject(checkData)) {
+		tmLoading("您未选择学员", 2);
+		return;
+	}
+	var url = basePath + "admin/divideGrade/delUndivData.htmls";
+	var sendData = new Object();
+	sendData.idArray = checkData[0];
+	sendData.nameArray=checkData[1];
+	sendData.profIdArray = checkData[2];
+	sendData.profOrgIdArray = checkData[3];
+	sendData.content = "你确定删除'"+getNameFive()+" 条学员信息吗？";
+	sendToServer(url, sendData, backHandlerData);	
+}
+/**
+ * 已分班的删除功能
+ */
+function delDived() {
+	//判断是否有有子项目的选项
+	var flag = false;
+	$("input:checked").each(function(){
+		var l = $(this).parent().next().children("a").length;
+		if(l != 0) {
+      		var name = $(this).data("name");
+			tmLoading(name + " 学员专业下有分配具体班级，不可对该专业执行取消班级操作！",2);
+			flag = true;
+			return false;
+		}		
+	})
+	if(flag) {
+		return false;
+	}
+	var checkData = getData("id", "gradeorgid","name", "proforgid", "gradeid");
+	if(isEmptyObject(checkData)) {
+		tmLoading("您未选择学员", 2);
+		return;
+	}
+	url = basePath + "admin/divideGrade/delDivedData.htmls";
+	var sendData = new Object();
+	sendData.idArray = checkData[0];
+	sendData.gradeOrgIdArray = checkData[1];
+	sendData.nameArray=checkData[2];
+	sendData.profOrgIdArray=checkData[3];
+	sendData.gradeIdArray = checkData[4];
+	sendData.content = "你确定取消'"+getNameFive()+" 条学员班级信息吗？</br> 提示：该学员的考勤及作业记录数据将会置为隐藏,不占原班级名额,也不影响原班级统计数据.";
+	sendToServer(url, sendData, backHandlerData);
+}
+/**
+ * 判断是否有不同专业的人
+ */
+function findDiffProf(){
+	var temp = "";
+	var flag = false;
+	$("input:checked").each(function(index, domEle){
+	  var profName = $(domEle).data("profname");
+	  if(isEmpty(profName)) 
+	    return true;//continue
+	  
+	  if(isEmpty(temp)) 
+	  	temp=profName;
+	  else {
+	    if(profName != temp) {
+	      flag = true;
+	      return false;//break
+	    }
+	  }
+	})
+	return flag;
+}
+/**
+ * 根据专业名称获取专业下的班级id和名称
+ */
+function getGradeNameByProfName(profName){
+	var url = basePath + "admin/divideGrade/getClasses.htmls";
+	var sendData = new Object();
+	sendData.profName = profName;
+	var callBack = function(gradeList) {
+		var gradelist=eval("("+gradeList+")");		
+		$("#checkValue").parent().find("label").remove();
+		$(".pop_title span").text("所选专业：" + profName);
+		var html = "";
+		for(var i=0;i<gradelist.length;i++) {
+			html = "<label class='padr_20'><input type='checkbox' name='checkbox' value='"
+					+gradelist[i].name+"' data-gradeorgid='"+gradelist[i].id+ "' >"+gradelist[i].name+"</label>";
+			$("#checkValue").append(html);
+		}		
+		$(".classPop").show();
+		//分别绑定确定和取消事件
+		$("#gradeSure").off("click");
+		$("#gradeSure").on("click", divideGradeAction);	
+		$(".Quit").click(function(){
+			$(".pop_div").hide();
+		});
+	}
+	$.ajax({
+		url: url,
+		async:false,
+		type:"post",
+		data: sendData,
+		success: callBack
+	});
+//	$.post(url, sendData, callBack);
+}
+function divideGradeAction() {
+	//学员id list，专业名称， 班级list 		
+	var divGrade = new Object();
+	var checkedData = getData("id","profname","proforgid","gradeorgid");	
+	divGrade.profOrgIdArray = checkedData[2];	
+	divGrade.gradeOrgIdArray = checkedData[3];	
+	if(isEmpty(divGrade.gradeOrgIdArray)) {
+		tmLoading("请选择该学员的班级", 2);
+		return;
+	} else {
+		$(".pop_div").hide();
+		divGrade.profName = checkedData[1].split(",")[0];
+		divGrade.idArray = checkedData[0];	
+		var url = basePath + "admin/divideGrade/divideGrade.htmls";
+		var sendData = divGrade;
+//		sendData.content = "确认将这些学员分班?";
+		$.post(url, sendData, backHandlerData);
+	}
+}
+var saveData = new Object();
+function reDivideGradeBind() {
+	//根据专业名称获取班级
+	var $thisData = $(this).parent().siblings().eq(0).find("input");
+	profName = $thisData.data("profname");
+	getGradeNameByProfName(profName);
+	
+	//将已有班级勾选
+	var url = basePath + "admin/divideGrade/getGradesById.htmls";
+	var id = $thisData.data("id");
+	var profOrgId = $thisData.data("proforgid");
+	var name = $thisData.data("name");
+	
+	var sendData = new Object();
+	sendData.idArray = id;
+	sendData.profOrgId = profOrgId;
+	$.post(url,sendData, function(data){
+		data = eval("("+data+")");
+		idArray = data.split(",");
+		resultarr = idArray;
+		$("input[name='checkbox']").each(function(index, domEle){
+			var gradeId = $(this).data("gradeorgid");			
+			for(var i=0;i<idArray.length;i++) {
+				if(Number(gradeId) == Number(idArray[i])) {
+					$(this).prop("checked", true);
+				}
+			}
+		});
+	});		
+	//保存使重新分班弹框的信息
+	saveData.studentId = id;
+	saveData.profOrgId = profOrgId;
+	saveData.studentName = name;
+	//将确定按钮重绑定
+	$("#gradeSure").off("click");	
+	$("#gradeSure").on("click", reDivideGradeAction);	
+}
+/**
+ * 重新分班执行
+ */
+function reDivideGradeAction() {
+	
+	
+
+	
+/*	var content = "你确定取消'"+getNameFive()+" 条学员班级信息吗？</br> 提示：该学员的考勤及作业记录数据将会置为隐藏,不占原班级名额,也不影响原班级统计数据.";
+	tm_dialoag.confirm({content:sendData.content,callback:function(ok){
+		if(!ok){
+			return false;
+		}
+	}});*/
+	
+	
+	//隐藏弹出框
+	$(".pop_div").hide();
+	//需要获取：学员id， 选择的班级id， 专业id
+	var gradeOrgIdArray = new String();
+	$("input[name='checkbox']:checked").each(function(){
+	  var gradeId = $(this).data("gradeorgid");
+	  if(isEmpty(gradeOrgIdArray))
+	     gradeOrgIdArray = gradeId;
+	  else {
+	    gradeOrgIdArray = gradeOrgIdArray + "," + gradeId;
+	  }
+	});
+	var sendData = new Object();
+	sendData.idArray = saveData.studentId;
+	sendData.profOrgId = saveData.profOrgId;
+	sendData.nameArray = saveData.studentName;
+	sendData.gradeOrgIdArray = gradeOrgIdArray;
+	var url = basePath + "admin/divideGrade/reDivideGradeAction.htmls"
+	
+	//判断是否弹出确认框：用于确认原本选定的班级现在取消了
+	var confirm =false;
+	var gradeOrgArray = new Array();
+	if(gradeOrgIdArray!=""){
+		if(!isNaN(gradeOrgIdArray)){
+			gradeOrgArray[0] = gradeOrgIdArray.toString();
+		}else{
+		 gradeOrgArray = gradeOrgIdArray.split(",");
+		}
+	}
+	
+	for(var i=0;i<resultarr.length;i++) {
+		if($.inArray(resultarr[i],gradeOrgArray)=='-1'){
+			confirm = true;
+			break;
+		}
+	}
+	if(confirm==true){
+		var content = "你存在取消分班或转班的操作，确定要这么做吗？</br> 提示：该学员的考勤及作业记录数据将会置为隐藏,不占原班级名额,也不影响原班级统计数据.";
+		tm_dialoag.confirm({content:content,callback:function(ok){
+			if(!ok){
+				return false;
+			}else{
+				if(isEmpty(gradeOrgIdArray) && !hasOverGrade(sendData.idArray,sendData.profOrgId)){
+					var url = basePath + "admin/divideGrade/reDivideGradeActionConfirm.htmls"
+					$.post(url,sendData, backHandlerDataConfirm);	
+			
+			//		sendData.content = "你选择专业学员数据未分配到任何班级， 该专业学员数据将进入未分班学员列表！";
+			//		sendToServer(url,sendData, backHandlerData);	
+				} else {
+					var url = basePath + "admin/divideGrade/reDivideGradeAction.htmls";
+					saveData = new Object();//清空saveData
+					$.post(url,sendData, backHandlerData);	
+			    }
+			}
+		}});
+	}else{
+		if(isEmpty(gradeOrgIdArray) && !hasOverGrade(sendData.idArray,sendData.profOrgId)){
+				var url = basePath + "admin/divideGrade/reDivideGradeActionConfirm.htmls"
+				$.post(url,sendData, backHandlerDataConfirm);	
+		
+		//		sendData.content = "你选择专业学员数据未分配到任何班级， 该专业学员数据将进入未分班学员列表！";
+		//		sendToServer(url,sendData, backHandlerData);	
+			} else {
+				saveData = new Object();//清空saveData
+				$.post(url,sendData, backHandlerData);	
+		}
+	}	
+	
+
+}
+/**
+ * 检测当前学生是否存在结课对象
+ */
+function hasOverGrade(id,profOrgId) {
+	var flag = false;
+//	$("table tr").each(function(index, dom){
+//		var id = $(dom).data("id");
+//		if(id == idArray) {
+//			var $gradeStatus = $(dom).find("td").eq(14);
+//			if($gradeStatus.text() == "结课") {
+//				flag = true;
+//				return false;
+//			}
+//		}
+//	});
+	var url = basePath + "admin/divideGrade/getGradesById.htmls";
+	var sendData = new Object();
+	sendData.idArray = id;
+	sendData.profOrgId = profOrgId;
+	sendData.statusArray = "end";
+	
+	$.ajax({
+        async: false,
+        url: url,
+        method: 'post',             
+        data: sendData,
+        success: function(data) {
+        	data = eval("("+data+")");
+        	if(!isNaN(data)||data.length==0){
+    			  flag = true;
+    		}
+        }
+    });
+	
+	return flag;
+}
+
+
+function backHandlerDataConfirm(msg){
+	msg = eval("("+ msg +")");
+	if(!msg.result) {
+		tmLoading(msg.msg, 2);
+		return;
+	} else {
+		var gradeOrgIdArray = new String();
+		$("input[name='checkbox']:checked").each(function(){
+		  var gradeId = $(this).data("gradeorgid");
+		  if(isEmpty(gradeOrgIdArray))
+		     gradeOrgIdArray = gradeId;
+		  else {
+		    gradeOrgIdArray = gradeOrgIdArray + "," + gradeId;
+		  }
+		});
+		var sendData = new Object();
+		sendData.idArray = saveData.studentId;
+		sendData.profOrgId = saveData.profOrgId;
+		sendData.nameArray = saveData.studentName;
+		sendData.gradeOrgIdArray = gradeOrgIdArray;
+		saveData = new Object();//清空saveData
+		sendData.content = "你选择专业学员数据未分配到任何班级， 该专业学员数据将进入未分班学员列表！";
+		var url = basePath + "admin/divideGrade/reDivideGradeAction.htmls";
+		sendToServer(url,sendData, backHandlerData);
+	}
+}  
+function backHandlerData(msg){
+	msg = eval("("+ msg +")");
+	if(!msg.result) {
+		tmLoading(msg.msg, 2);
+		return;
+	} else {
+		tmLoading(msg.msg, 2);	
+		setTimeout(function(){
+			callBackData();
+		}, 1);
+	}
+}  
+function callBackData() {
+	if(getCookie("onReadPageCookie") == "dived") {
+		getDivedStudentCount();
+	} else {//初始化加载未分班学员
+		getUndivStudentCount();
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

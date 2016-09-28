@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+		http://www.springframework.org/schema/beans/spring-beans-4.1.xsd 
+		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context/spring-context-4.1.xsd 
+		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc/spring-mvc-4.1.xsd">
+		
+    <context:annotation-config /> 
+	
+	<!-- 自动扫描@Controller注入为bean -->
+	<context:component-scan base-package="com.moon.vip.controller"/>
+	
+	<bean id="jsonConverter"
+		class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/html;charset=UTF-8</value>
+				<value>application/json;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="handlerExceptionResolver"
+		class="com.moon.vip.resolver.ExceptionCenterResolver">
+		<property name="defaultErrorView" value="/pages/error" /> <!--错误页面 -->
+		<property name="messageConverter">
+			<ref bean="jsonConverter"/>
+		</property>
+	</bean>  
+	
+<!--  websocket相关扫描，主要扫描：WebSocketConfig.java 这个类路径   by Chenhai  -->
+<!-- 	<context:component-scan base-package="com.moon.socket"/>  -->
+	
+	<!-- 以下为SpringMVC配置 -->
+	<mvc:annotation-driven>
+	
+		<!-- 返回json数据，@response使用 -->
+		<mvc:message-converters register-defaults="true">
+			<bean
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/html;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+	
+	<!-- 对模型视图名称的解析，即在模型视图名称添加前后缀 -->
+	<!-- 静态资源配置处理 -->
+	<mvc:resources location="/resources/" mapping="/resources/**" />
+	<bean
+		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="viewClass"
+			value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/views" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+
+	<!-- 用户登录拦截器 -->
+	<mvc:interceptors>
+	<mvc:interceptor>
+			<!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller请求    by chenhai-->
+			<mvc:mapping path="/**" />
+			<bean class="com.moon.vip.interceptor.BaseInterceptor"></bean>
+		</mvc:interceptor>
+	<mvc:interceptor>
+			<!-- 匹配的是url路径， 如果不配置或/**,将拦截所有的Controller    by cGod -->
+			<mvc:mapping path="/**" />
+			<mvc:exclude-mapping path="/error/noPower.htmls" />
+			<mvc:exclude-mapping path="/admin/employee/login.htmls" />
+			<mvc:exclude-mapping path="/admin/employee/loginAction.htmls" />
+			<mvc:exclude-mapping path="/admin/employee/getLoginCount.htmls" />
+			<mvc:exclude-mapping path="/admin/code/codeShow.htmls" />
+			<bean class="com.moon.vip.interceptor.LoginInterceptor"></bean>
+		</mvc:interceptor> 
+		<!-- 当设置多个拦截器时，先按顺序调用preHandle方法，然后逆序调用每个拦截器的postHandle和afterCompletion方法 -->
+	
+	</mvc:interceptors>
+
+</beans>

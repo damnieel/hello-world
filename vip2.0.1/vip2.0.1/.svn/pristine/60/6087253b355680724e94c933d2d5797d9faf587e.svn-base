@@ -1,0 +1,46 @@
+/***分页的初始化方法***/
+function tm_init_page(itemCount) {
+	$("#page").pagination(itemCount, {
+		num_edge_entries : 3, /***边缘页数***/
+		num_display_entries : 3, /***主体页数***/
+		current_page : 0,
+		showGo:true,
+		showSelect:true,
+		is_search:false,
+		items_per_page :10, /***每页显示X项***/
+		prev_text : "前一页",
+		next_text : "后一页",
+		callback : function(pageNo,psize) {
+			tm_load_template(pageNo,psize);
+		}
+	});
+};	
+/* 在读学员 */
+function tm_load_template(pageNo,psize,callback){
+	tmLoading("加载中...");
+	if(getCookie("onReadPageCookie") == "dived") {
+		url = basePath+"admin/divideGrade/getDivedStudentData.htmls";
+	} else {
+		url = basePath+"admin/divideGrade/getUndivStudentData.htmls";
+	}
+	
+	var sendData = getSearchVO();
+	sendData.pageNo = pageNo*psize;
+	sendData.pSize = psize;
+	$.ajax({
+		url: url,
+		async:false,
+		type:"post",
+		data : sendData,
+		success : function(data) {
+			$('#allUnfinished').html(data).show();
+			$(".tmui-loading").click();
+			$(".reDivideGrade").click(reDivideGradeBind);
+		}
+	});            
+}
+
+
+
+
+

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.userManage.UserManagerSqlMapper" >
+	<!-- 用户管理页面数据 大枫 -->
+	<select id="selectUserManageData" resultType="com.moon.vip.infra.vo.sys.userManage.UserManageVO">
+		SELECT
+			emp.ID,
+			emp.name,
+			emp.nick_name as nickName,
+			emp.employee_code as employeeCode,
+			role.`name` as roleName,
+			empRole.ID as empRoleId
+		FROM
+		    vip_employee_base emp 
+	    LEFT JOIN 	vip_employee_role empRole ON empRole.employee_id = emp.ID
+		LEFT JOIN 	
+			vip_role role ON  role.ID = empRole.role_id
+		WHERE
+			<!-- empRole.employee_id = emp.ID -->
+	     <!--  AND role.ID = empRole.role_id -->
+		 emp.account_status = 'using' 
+		<if test="keyWord != null" >
+			AND (
+				emp.employee_code like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR emp.NAME like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR emp.nick_name like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+			)
+	    </if>
+	    order by empRole.create_time desc
+		LIMIT #{pageNo, jdbcType=INTEGER}, #{pSize, jdbcType=INTEGER};
+	</select>
+	<!-- 用户管理页面数据 总数 大枫 -->
+	<select id="selectUserManageDataCount" resultType="java.lang.Integer">
+		SELECT
+			count(1)
+		FROM
+			  vip_employee_base emp 
+	    LEFT JOIN 	vip_employee_role empRole ON empRole.employee_id = emp.ID
+		LEFT JOIN 	
+			vip_role role ON  role.ID = empRole.role_id
+		WHERE emp.account_status = 'using'
+		<if test="keyWord != null" >
+			AND (
+				emp.employee_code like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR emp.NAME like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+				OR emp.nick_name like CONCAT('%', #{keyWord , jdbcType=VARCHAR}, '%')
+			)
+	    </if>
+	</select>
+	<select id="selectEmpByEmpCode" parameterType="java.lang.String" 
+			resultType="com.moon.vip.infra.vo.sys.userManage.UserManageVO">
+	SELECT
+		emp.`name`,
+		emp.employee_code as employeeCode,
+		emp.nick_name as nickName,
+		emp.ID
+	FROM
+		vip_employee_base emp
+	WHERE 
+	emp.employee_code = #{employeeCode, jdbcType=VARCHAR}
+	AND emp.account_status = 'using'
+	</select>
+		<select id="countEmployeeByParams" 
+			resultType="java.lang.Integer">
+	SELECT
+	    count(*)
+	FROM
+		vip_employee_base emp
+	WHERE 
+	(emp.employee_code = #{employeeCode, jdbcType=VARCHAR}
+	OR emp.nick_name = #{nickName,jdbcType = VARCHAR})
+	<!-- AND emp.account_status = 'using' -->
+	</select>
+			<select id="countEmploye" 
+			resultType="java.lang.Integer">
+	SELECT
+	    count(*)
+	FROM
+		vip_employee_base emp
+	WHERE 
+	emp.employee_code != #{employeeCode, jdbcType=VARCHAR}
+	AND emp.nick_name = #{nickName,jdbcType = VARCHAR}
+	
+	<!-- AND emp.account_status = 'using' -->
+	</select>
+	
+</mapper>

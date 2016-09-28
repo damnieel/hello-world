@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.StudentClassSqlMapper" >
+  <resultMap id="BaseResultMap" type="com.moon.vip.model.student.StudentClass" >
+    <id column="ID" property="id" jdbcType="INTEGER" />
+    <result column="op_pro_id" property="opProId" jdbcType="INTEGER" />
+    <result column="op_cla_id" property="opClaId" jdbcType="INTEGER" />
+    <result column="student_id" property="studentId" jdbcType="INTEGER" />
+    <result column="status" property="status" jdbcType="VARCHAR" />
+    <result column="is_valid" property="isValid" jdbcType="CHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="score" property="score" jdbcType="DOUBLE" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="creator" property="creator" jdbcType="VARCHAR" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user" property="modifyUser" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    ID, op_pro_id, op_cla_id, student_id, status,
+     is_valid, remark, score, create_time, creator, modify_time, modify_user, 
+    version
+  </sql>
+  <update id="updateValidById">
+  	UPDATE vip_student_class 
+	SET is_valid = 'N'
+	WHERE ID = #{id, jdbcType=INTEGER};
+  </update>
+  <!-- 根据id 获取到班级id数组 大枫 -->
+  <select id="selectGradeByStudentId" resultType="java.lang.String" 
+  			parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO">
+	SELECT
+		GROUP_CONCAT(op_cla_id)
+	FROM
+		vip_student_class
+	WHERE
+		is_valid = 'Y'
+	AND student_id = #{idArray, jdbcType=VARCHAR}
+	AND op_pro_id = #{profOrgId, jdbcType=INTEGER}
+	<if test="statusArray == 'end'"> 
+	AND `status` = 'end'
+	</if>
+	<if test="statusArray == null">
+	AND `status` = 'reading'
+	</if>
+	GROUP BY
+		student_id;
+  </select>
+  <select id="selectGradeInfoId" resultType="java.lang.Integer"
+			parameterType="com.moon.vip.infra.vo.onReadPage.ParamsVO">
+	SELECT
+		ID
+	FROM
+		vip_student_class
+	WHERE
+		student_id = #{idArray, jdbcType=VARCHAR}
+	AND op_cla_id = #{gradeOrgIdArray, jdbcType=VARCHAR}
+	AND op_pro_id = #{profOrgId, jdbcType=INTEGER}
+	AND is_valid = 'Y'
+  </select>
+    <select id="findStuByClaId" resultType="java.lang.Integer">
+	SELECT
+		count(1)
+	FROM
+		vip_student_class
+	WHERE
+    op_cla_id = #{id, jdbcType=INTEGER} 
+	AND is_valid = 'Y'
+  </select>
+</mapper>

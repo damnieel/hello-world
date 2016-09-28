@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.StudentFilesMapper" >
+  <!-- 学院档案分页显示 -->
+<resultMap id="BaseResultMap" type="com.moon.vip.infra.vo.student.StudentFilesVO" >
+ <id column="ID" property="id" jdbcType="INTEGER" /> 
+ <result column="stuId" property="stuId" jdbcType="INTEGER" />  
+ <result column="opProId" property="opProId" jdbcType="INTEGER" />
+ <result column="professionCode" property="professionCode" jdbcType="VARCHAR" />
+ <result column="studentName" property="studentName" jdbcType="VARCHAR" /> 
+ <result column="professionName" property="professionName" jdbcType="VARCHAR" />  
+ <result column="telephone" property="telephone" jdbcType="VARCHAR" />
+ <result column="qq" property="qq" jdbcType="VARCHAR" />    
+ <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+</resultMap>
+ 
+<select id="selectFileList" resultMap="BaseResultMap" parameterType="com.moon.vip.infra.vo.sys.SearchVO">
+SELECT
+  sp.ID id,
+  sa.ID stuId,
+  sp.op_pro_id opProId,
+  sp.profession_code professionCode,
+  sa.`name` studentName,
+  op.`name` professionName,
+  sa.telephone telephone,
+  sa.QQ qq,
+  sp.enter_date createTime
+FROM (
+				SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId
+				FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y' and dep.type in('org','pro') )
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y' and pro.type = 'pro')
+				   WHERE cls.is_valid = 'Y' 
+				         <if test="organizationId == 0 or organizationId == 1">
+							     AND cls.partent_id = 1
+						</if> 
+					    <if test="organizationId != 0 and organizationId != 1">
+							     AND cls.id = #{organizationId,jdbcType=INTEGER}
+					    </if>						 
+					 ) s 
+JOIN vip_student_professional sp on (s.clsId = sp.op_pro_id or s.depId = sp.op_pro_id or s.proId = sp.op_pro_id )
+JOIN vip_student_archives sa ON sp.student_id=sa.ID
+JOIN vip_organizational_professional op ON sp.op_pro_id=op.id
+WHERE sp.is_valid='Y'
+
+<if test="opClaIds != null">  
+AND
+sp.op_pro_id in 
+     <foreach collection="opClaIds" item="Id" index="index"
+		 open="(" close=")" separator=","> 
+		 #{Id}
+	 </foreach>
+</if> 
+<if test="startDate != null and endDate != null">
+AND sp.enter_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+AND sp.enter_date <![CDATA[<=]]> #{endDate,jdbcType=DATE}
+</if>
+<if test="keyWord!=null">
+ AND (sa.`name` LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.telephone  LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.QQ LIKE #{keyWord,jdbcType=VARCHAR})
+</if>
+ORDER BY createTime DESC 
+<if test="pSize !=0 and pSize != null ">
+LIMIT #{pageNo,jdbcType=INTEGER},#{pSize,jdbcType=INTEGER}
+</if>
+</select>
+
+
+ <!-- 学院档案分页总数 -->
+<select id="selectTotalRecord" resultType="Integer" parameterType="com.moon.vip.infra.vo.sys.SearchVO">
+SELECT
+   COUNT(*)
+FROM (
+				SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId
+				FROM vip_organizational_professional cls 
+						 LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y' and dep.type in('org','pro') )
+						 LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y' and pro.type = 'pro')
+				   WHERE cls.is_valid = 'Y' 
+				         <if test="organizationId == 0 or organizationId == 1">
+							     AND cls.partent_id = 1
+						</if> 
+					    <if test="organizationId != 0 and organizationId != 1">
+							     AND cls.id = #{organizationId,jdbcType=INTEGER}
+					    </if>						 
+					 ) s 
+JOIN vip_student_professional sp on (s.clsId = sp.op_pro_id or s.depId = sp.op_pro_id or s.proId = sp.op_pro_id )
+JOIN vip_student_archives sa ON sp.student_id=sa.ID
+JOIN vip_organizational_professional op ON sp.op_pro_id=op.id
+WHERE sp.is_valid='Y'
+
+<if test="opClaIds != null">  
+AND
+sp.op_pro_id in 
+     <foreach collection="opClaIds" item="Id" index="index"
+		 open="(" close=")" separator=","> 
+		 #{Id}
+	 </foreach>
+</if> 
+<if test="startDate != null and endDate != null">
+AND sp.enter_date <![CDATA[>=]]> #{startDate,jdbcType=DATE}
+AND sp.enter_date <![CDATA[<=]]> #{endDate,jdbcType=DATE}
+</if>
+<if test="keyWord!=null">
+ AND (sa.`name` LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.telephone  LIKE #{keyWord,jdbcType=VARCHAR} 
+ OR sa.QQ LIKE #{keyWord,jdbcType=VARCHAR})
+</if>
+</select>
+  
+  
+  <!-- 学员档案个人信息 -->
+<resultMap id="PersonalInfoResultMap" type="com.moon.vip.infra.vo.student.StudentFilesVO" >
+  <id column="ID" property="id" jdbcType="INTEGER" />
+  <result column="stuId" property="stuId" jdbcType="INTEGER" />
+  <result column="opProId" property="opProId" jdbcType="INTEGER" />
+  <result column="createTime" property="createTime" jdbcType="TIMESTAMP" />
+  <result column="professionCode" property="professionCode" jdbcType="VARCHAR" />
+  <result column="studentName" property="studentName" jdbcType="VARCHAR" />
+  <result column="studentNameSpell" property="studentNameSpell" jdbcType="VARCHAR" />
+  <result column="sex" property="sex" jdbcType="CHAR" />
+  <result column="stuPictureUrl" property="stuPictureUrl" jdbcType="VARCHAR" />
+  <result column="birthday" property="birthday" jdbcType="DATE" />
+  <result column="idCard" property="idCard" jdbcType="VARCHAR" />
+  <result column="educationBackground" property="educationBackground" jdbcType="VARCHAR" />
+  <result column="professionName" property="professionName" jdbcType="VARCHAR" />
+  <result column="nativePlace" property="nativePlace" jdbcType="VARCHAR" />
+  <result column="postalCode" property="postalCode" jdbcType="VARCHAR" />
+  <result column="school" property="school" jdbcType="VARCHAR" />
+  <result column="address" property="address" jdbcType="VARCHAR" />
+  <result column="studentResources" property="studentResources" jdbcType="VARCHAR" />
+  <result column="otherResources" property="otherResources" jdbcType="VARCHAR" />
+  <result column="costResources" property="costResources" jdbcType="VARCHAR" />
+  <result column="telephone" property="telephone" jdbcType="VARCHAR" />
+  <result column="qq" property="qq" jdbcType="VARCHAR" />
+  <result column="email" property="email" jdbcType="VARCHAR" />
+  <result column="hobbies" property="hobbies" jdbcType="VARCHAR" />
+  <result column="studyBasis" property="studyBasis" jdbcType="VARCHAR" />
+  <result column="componentCode" property="componentCode" jdbcType="VARCHAR" />
+  <result column="cardFrontAddress" property="cardFrontAddress" jdbcType="VARCHAR" />
+  <result column="cardReverseAddress" property="cardReverseAddress" jdbcType="VARCHAR" />
+</resultMap>
+
+<select id="selectFilesInfoById" resultMap="PersonalInfoResultMap">
+SELECT
+  sp.ID id,
+  sa.ID stuId,
+  sp.op_pro_id opProId,
+  sp.enter_date createTime,
+  sp.profession_code professionCode,
+  sa.`name` studentName,
+  sa.name_spell studentNameSpell,
+  sa.sex sex,
+  sa.stu_picture_url stuPictureUrl,
+  sa.birthday birthday,
+  sa.id_card idCard,
+  sa.education_background educationBackground,
+  op.`name` professionName,
+  sa.native_place nativePlace,
+  sa.postal_code postalCode,
+  sa.school school,
+  sa.address address,
+  sa.student_resources studentResources,
+  sa.other_resources otherResources,
+  sa.cost_resources costResources,
+  sa.telephone telephone,
+  sa.QQ qq,
+  sa.email email,
+  sa.hobbies hobbies,
+  sp.study_basis studyBasis,
+  sa.component_code componentCode,
+  sa.card_front_address cardFrontAddress,
+  sa.card_reverse_address cardReverseAddress
+FROM
+	vip_student_archives sa,
+	vip_student_professional sp,
+    vip_organizational_professional op
+WHERE
+	sa.ID = sp.student_id
+AND sp.op_pro_id=op.ID
+AND sp.ID=#{id,jdbcType=INTEGER}
+</select>
+
+<!-- 保存学生学习基础 -->
+<update id="updateStudyBasisById" >
+  UPDATE vip_student_professional sp
+  SET study_basis = #{stuBasis,jdbcType=VARCHAR}
+  WHERE sp.ID = #{id,jdbcType=INTEGER}
+</update>
+  
+<resultMap id="LearningInfoResultMap" type="com.moon.vip.infra.vo.student.StudentLearnStateVO" >
+  <id column="ID" property="id" jdbcType="INTEGER" />
+  <result column="stuId" property="stuId" jdbcType="INTEGER" />
+  <result column="studentName" property="studentName" jdbcType="VARCHAR" />
+  <result column="professionName" property="professionName" jdbcType="VARCHAR" />
+  <result column="shouldAttendance" property="shouldAttendance" jdbcType="INTEGER" />
+  <result column="leaveNumber" property="leaveNumber" jdbcType="INTEGER" />
+  <result column="factAttendance" property="factAttendance" jdbcType="INTEGER" />
+  <result column="shouldTask" property="shouldTask" jdbcType="INTEGER" />
+  <result column="factTask" property="factTask" jdbcType="INTEGER" />
+  <result column="endDate" property="endDate" jdbcType="DATE" />
+  <result column="certificate" property="certificate" jdbcType="VARCHAR" />
+  <result column="rewardsPunishments" property="rewardsPunishments" jdbcType="VARCHAR" />
+  <result column="wordMouth" property="wordMouth" jdbcType="VARCHAR" />
+  <result column="appraise" property="appraise" jdbcType="VARCHAR" />
+  <result column="modifyUser" property="modifyUser" jdbcType="VARCHAR" />
+  <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+</resultMap>  
+
+<!-- 查询学生学习情况 -->
+<select id="selectLearningInfoById" resultMap="LearningInfoResultMap">
+SELECT
+  sp.ID id,
+  sa.ID stuId,
+  sa.`name` studentName,
+  op.`name` professionName,
+  sp.should_attendance shouldAttendance,
+  sp.leave_number leaveNumber,
+  sp.fact_attendance factAttendance,
+  sp.should_task shouldTask,
+  sp.fact_task factTask,
+  sp.end_date endDate,
+  sp.certificate certificate,
+  sp.rewards_punishments rewardsPunishments,
+  sp.word_mouth wordMouth,
+  sp.appraise appraise,
+  sp.modify_user modifyUser,
+  sp.modify_time modifyTime
+FROM
+	vip_student_archives sa,
+	vip_student_professional sp,
+  vip_organizational_professional op
+WHERE
+	sp.student_id=sa.ID
+AND sp.op_pro_id=op.ID
+AND sp.ID=#{id,jdbcType=INTEGER}
+</select>
+<resultMap id="ClassInfoResultMap" type="com.moon.vip.infra.vo.student.StudentClassVO" >
+  <result column="scId" property="scId" jdbcType="INTEGER" />
+  <result column="professionName" property="professionName" jdbcType="VARCHAR" />
+  <result column="nickName" property="nickName" jdbcType="VARCHAR" />
+  <result column="score" property="score" jdbcType="INTEGER" />
+</resultMap>  
+<!-- 查询学生的班级信息 -->
+<select id="selectClassInfoById" resultMap="ClassInfoResultMap">
+SELECT  
+  sc.ID scId,
+  op.`name` professionName,
+  eb.nick_name nickName,
+  sc.score score
+FROM
+  vip_student_class sc JOIN vip_organizational_professional op ON sc.op_cla_id=op.ID
+JOIN vip_OP_manager opm ON (sc.op_cla_id=opm.op_id AND opm.type='teacher')
+JOIN vip_employee_base eb ON opm.employee_code=eb.employee_code
+WHERE 
+sc.student_id=#{studentId,jdbcType=INTEGER}
+</select>
+
+<resultMap id="IdCardInfoResultMap" type="com.moon.vip.infra.vo.student.StudentFilesVO" >
+  <id column="ID" property="id" jdbcType="INTEGER" />
+  <result column="cardFrontAddress" property="cardFrontAddress" jdbcType="VARCHAR" />
+  <result column="cardReverseAddress" property="cardReverseAddress" jdbcType="VARCHAR" />
+</resultMap>  
+<!-- 查询学生的身份证信息 -->
+<select id="selectIdCardPicById" resultMap="IdCardInfoResultMap">
+SELECT
+  sp.ID id,
+  sa.card_front_address cardFrontAddress,
+  sa.card_reverse_address cardReverseAddress
+FROM
+	vip_student_archives sa,
+	vip_student_professional sp,
+    vip_organizational_professional op
+WHERE
+	sa.ID = sp.student_id
+AND sp.op_pro_id=op.ID
+AND sp.ID=#{id,jdbcType=INTEGER}
+</select>
+
+<!-- 查找学生附件 -->
+<resultMap id="AttachResultMap" type="com.moon.vip.model.student.StudentProfessionalAttach" >
+    
+    <id column="ID" property="id" jdbcType="INTEGER" />
+    <result column="sp_id" property="spId" jdbcType="INTEGER" />
+    <result column="type" property="type" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="url_address" property="urlAddress" jdbcType="VARCHAR" />
+    <result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+    <result column="creator" property="creator" jdbcType="VARCHAR" />
+    <result column="modify_time" property="modifyTime" jdbcType="TIMESTAMP" />
+    <result column="modify_user" property="modifyUser" jdbcType="VARCHAR" />
+    <result column="version" property="version" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    
+    ID, sp_id, type, name ,url_address, create_time, creator, modify_time, modify_user, version
+  </sql>
+  <select id="selectProfessionalAttach" resultMap="AttachResultMap">
+    
+    select 
+    <include refid="Base_Column_List" />
+    from vip_student_professional_attach
+    where sp_id = #{spId,jdbcType=INTEGER}
+    and type=#{type,jdbcType=VARCHAR}
+  </select>
+  <!-- 删除时查询学生附件 -->
+  <select id="selectProfessionalAttachById" resultMap="AttachResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from vip_student_professional_attach 
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+</mapper>

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.roleManage.RoleManageSqlMapper" >
+	<!-- 根据roleId 获取菜单，数据权限 -->
+	<select id="selectDataMenuByRoleId" resultType="com.moon.vip.infra.vo.sys.roleManage.RoleMenuDataOperVO"
+					parameterType="java.lang.Integer">
+	SELECT 
+		role.ID AS roleId,
+		role.`name` AS roleName,
+		menu.menuId,
+		menu.menuName,
+		menu.menuParentId,
+		rule.ruleId,
+		rule.ruleName,
+		rule.actId, 
+		rule.actName
+	FROM
+	    vip_role role
+	        LEFT JOIN
+	    (SELECT 
+	        roleMenu.role_id, menuRes.ID as menuId, menuRes.name as menuName , menuRes.parent_id as menuParentId
+	    FROM
+	        vip_role_menu roleMenu, vip_menu_resource menuRes
+	    WHERE
+	        roleMenu.menu_id = menuRes.ID
+	            AND menuRes.is_valid = 'Y'
+		) menu ON role.ID = menu.role_id
+	        LEFT JOIN
+	    (SELECT 
+	        roleDataAct.role_id, rule.ID as ruleId, rule.name as ruleName, act.ID as actId, act.type_name as actName
+	    FROM
+	        vip_role_data_action roleDataAct, vip_data_rule rule, vip_action_type act
+	    WHERE
+	        roleDataAct.rule_id = rule.ID
+	            AND roleDataAct.action_id = act.ID 
+	            AND act.is_valid = 'Y'
+		) rule ON role.ID = rule.role_id
+		where 
+		<if test="roleId != 0">
+			role.ID = #{roleId, jdbcType=INTEGER} AND 
+		</if>		
+		<if test="roleId == 0">
+			0 = #{roleId, jdbcType=INTEGER} AND 
+		</if>
+		role.is_valid = 'Y'
+	    ORDER BY role.ID, menu.menuId, rule.ruleId, rule.actId asc
+	;
+	</select>
+	<!-- 如果roleId =0 获取所有， 如果roleId有值，就获取该角色的所有菜单 -->
+	<select id="selectMenuResByRoleId" parameterType="java.lang.Integer"
+					resultType="com.moon.vip.infra.vo.sys.roleManage.RoleMenuDataOperVO">
+		SELECT menuRes.ID as menuId, menuRes.name as menuName, menuRes.parent_id as menuParentId
+		from vip_menu_resource menuRes 
+		<if test="roleId != 0">
+		LEFT JOIN vip_role_menu roleMenu ON roleMenu.menu_id = menuRes.ID WHERE role_id = #{roleId, jdbcType=INTEGER}
+		</if>		
+		<if test="roleId == 0">
+		WHERE 0 = #{roleId, jdbcType=INTEGER} 
+		</if>		
+	</select>
+	
+	<!-- 如果roleId =0 获取所有， 如果roleId有值，就获取该角色的所有规则和操作 -->
+	<select id="selectDataActByRoleId" parameterType="java.lang.Integer"
+					resultType="com.moon.vip.infra.vo.sys.roleManage.RoleMenuDataOperVO">
+		SELECT rule.ID as ruleId, rule.`name` as ruleName , act.ID as actId, act.type_name as actName
+		<!-- SELECT rule.ID as ruleId , act.ID as actId -->
+		from vip_data_rule rule  
+		LEFT JOIN vip_role_data_action roleDataAct ON roleDataAct.rule_id = rule.ID
+		LEFT JOIN vip_action_type act ON roleDataAct.action_id = act.Id 
+		WHERE rule.is_valid = 'Y' 
+		<if test="roleId != 0">		
+		AND roleDataAct.role_id = #{roleId, jdbcType=INTEGER} 
+		</if>		
+		<if test="roleId == 0">
+		AND	0 = #{roleId, jdbcType=INTEGER} 
+		</if>	
+		ORDER BY rule.ID;
+	</select>
+	
+</mapper>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.DataRuleSqlMapper">
+	<select id="selectByRoleActionType" resultType="java.lang.String">
+		SELECT
+		DISTINCT rule.rule_content
+		FROM
+		vip_employee_role empRole
+		JOIN vip_role role ON empRole.role_id = role.ID
+		JOIN vip_role_data_action rda ON empRole.role_id = rda.role_id
+		JOIN vip_action_type aType ON rda.action_id = aType.ID
+		JOIN vip_data_rule rule ON rda.rule_id = rule.ID
+		WHERE
+		role.is_valid = 'Y'
+		AND rule.is_valid = 'Y'
+		AND aType.is_valid = 'Y'
+		AND aType.type = #{type, jdbcType = VARCHAR}
+		AND role.`code` IN 
+		<foreach collection="roleCodeList" item="roleCode" index="i" open="(" separator="," close=")">
+			#{roleCode, jdbcType = VARCHAR}
+		</foreach>
+	</select>
+	<select id="selectByRoleActionTypeBackId" resultType="java.lang.Integer">
+		SELECT
+		DISTINCT rule.ID
+		FROM
+		vip_employee_role empRole
+		JOIN vip_role role ON empRole.role_id = role.ID
+		JOIN vip_role_data_action rda ON empRole.role_id = rda.role_id
+		JOIN vip_action_type aType ON rda.action_id = aType.ID
+		JOIN vip_data_rule rule ON rda.rule_id = rule.ID
+		WHERE
+		role.is_valid = 'Y'
+		AND rule.is_valid = 'Y'
+		AND aType.is_valid = 'Y'
+		AND aType.type = #{type, jdbcType = VARCHAR}
+		AND role.`code` IN 
+		<foreach collection="roleCodeList" item="roleCode" index="i" open="(" separator="," close=")">
+			#{roleCode, jdbcType = VARCHAR}
+		</foreach>
+	</select>
+	<select id="selectAllRule" resultType="com.moon.vip.model.sys.DataRule">
+		SELECT rule.ID , rule.`name` from vip_data_rule rule WHERE rule.is_valid = 'Y';
+	</select>
+	
+	<select id="selectDataActByEmpId" resultType="com.moon.vip.infra.vo.sys.roleManage.EmpRoleRuleDataAct">
+	SELECT DISTINCT
+		role.code as roleCode,
+		roleDataAct.rule_id as ruleId,
+		rule.rule_content as ruleContent,
+		roleDataAct.action_id as actionId,
+		act.type as actType
+	FROM
+		vip_employee_base emp,
+		vip_employee_role empRole,
+		vip_role_data_action roleDataAct,
+		vip_action_type act, 
+		vip_role role,
+		vip_data_rule rule
+	WHERE
+		emp.ID = empRole.employee_id
+	AND empRole.role_id = roleDataAct.role_id
+	AND act.ID = roleDataAct.action_id
+	AND roleDataAct.rule_id = rule.ID
+	AND empRole.role_id = role.ID
+	AND act.is_valid = 'Y'
+	AND role.is_valid='Y'
+	AND rule.is_valid='Y'
+	AND emp.ID = #{employeeId, jdbcType=INTEGER};
+	</select>
+</mapper>

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.StudentRepeatSqlMapper" >
+    
+    <!-- 查询学员信息所有记录 -->
+    <select id="allStudentArchives" resultType="com.moon.vip.infra.vo.student.StudentVO" 
+    parameterType="com.moon.vip.infra.vo.student.StudentVO">
+      SELECT a.ID AS id,a.`name` AS stuName, a.id AS studentId,
+	      a.telephone AS telephone,a.QQ AS QQ
+      FROM vip_student_archives a
+      <where>
+           (ifnull(a.`name`,''),a.QQ) in(
+								 SELECT ifnull(c.`name`,''),c.QQ
+								   FROM vip_student_archives c 
+								  WHERE c.is_valid  ='Y'
+								  GROUP BY `name`,QQ,telephone HAVING COUNT(*)>1
+           )
+		   AND a.is_valid ='Y'
+	 <if test="keyWord !=null and keyWord !='' ">
+	    AND (a.`name` like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.telephone like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.QQ like CONCAT(CONCAT('%',#{keyWord}),'%'))
+	 </if>
+	</where>
+	UNION
+		 SELECT a.ID AS id,a.`name` AS stuName, a.id AS studentId,
+		        a.telephone AS telephone,a.QQ AS QQ
+		   FROM vip_student_archives a
+		  WHERE NOT EXISTS(
+	                       select null 
+	                         from vip_student_professional b 
+							where b.student_id =a.ID 
+							  and b.is_valid ='Y')  AND a.is_valid ='Y'
+	 <if test="keyWord !=null and keyWord !='' ">
+	    AND (a.`name` like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.telephone like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.QQ like CONCAT(CONCAT('%',#{keyWord}),'%')) 
+	 </if>
+	order by QQ,stuName
+	LIMIT #{offset},#{pageSize};
+    </select>
+    
+    <!-- 查询学员信息所有记录的总数 -->
+    <select id="allStudentArchivesCount" resultType="java.lang.Integer" 
+    parameterType="com.moon.vip.infra.vo.student.StudentVO">
+      SELECT COUNT(*) FROM (
+      SELECT a.ID AS id
+      FROM vip_student_archives a
+      <where>
+           (ifnull(a.`name`,''),a.QQ) in(
+								 SELECT ifnull(c.`name`,''),c.QQ
+								   FROM vip_student_archives c 
+								  WHERE c.is_valid  ='Y'
+								  GROUP BY `name`,QQ,telephone HAVING COUNT(*)>1
+           )
+		   AND a.is_valid ='Y'
+	 <if test="keyWord !=null and keyWord !='' ">
+	    AND (a.`name` like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.telephone like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.QQ like CONCAT(CONCAT('%',#{keyWord}),'%'))
+	 </if>
+	</where>
+	UNION
+		 SELECT a.ID AS id
+		   FROM vip_student_archives a
+		  WHERE NOT EXISTS(
+	                       select null 
+	                         from vip_student_professional b 
+							where b.student_id =a.ID 
+							  and b.is_valid ='Y')  AND a.is_valid ='Y'
+	 <if test="keyWord !=null and keyWord !='' ">
+	    AND (a.`name` like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.telephone like CONCAT(CONCAT('%',#{keyWord}),'%')
+	     OR  a.QQ like CONCAT(CONCAT('%',#{keyWord}),'%')) 
+	 </if>) AS aa
+    </select>
+    
+    <!-- 删除学员信息 -->
+    <delete id="deleteStudentArchives" parameterType="java.lang.Integer" >
+      UPDATE  vip_student_archives set is_valid ='N'  WHERE ID =#{id};    
+    </delete>
+  
+    <!-- 查询学员是否有关联的专业信息 -->
+    <select id="stuRelevanceProfessional" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+      SELECT COUNT(*) FROM vip_student_professional WHERE student_id =#{id} AND is_valid = 'Y';
+    </select>
+    
+    <!-- 查询是否存在多条记录 -->
+    <select id="stuProfessionalCount" parameterType="com.moon.vip.infra.vo.student.StudentVO" resultType="java.lang.Integer">
+      SELECT count(*) FROM vip_student_archives 
+      WHERE `name` = #{stuName} AND telephone = #{telephone} AND QQ = #{QQ}
+    </select>
+    
+     
+</mapper>

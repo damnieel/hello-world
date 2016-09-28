@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.report.StuProfessSqlMapper">
+
+  <select id="getCountStuProfessPool" resultType="java.lang.Integer" parameterType="com.moon.vip.infra.vo.search.StuProfessSearchParams">
+  		SELECT count(1) 
+  		From (
+			SELECT b.student_id	
+			  FROM (
+				       select distinct base.student_id,base.ID,base.op_pro_id,base.is_valid															
+						from vip_student_professional base
+						JOIN ( SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId
+								 FROM vip_organizational_professional cls 
+							          LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y')
+							          LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y')
+						        WHERE cls.is_valid = 'Y'  
+									  AND cls.partent_id = if(#{orgProCalId,jdbcType=INTEGER} = 0, 1,#{orgProCalId,jdbcType=INTEGER} )
+		                      )o on (o.clsId = base.op_pro_id or o.depId = base.op_pro_id or o.proId = base.op_pro_id) 
+	                   
+                   ) b
+		      JOIN vip_student_archives s on (b.student_id = s.id) 															
+              JOIN vip_organizational_professional m on (b.op_pro_id = m.id) 	
+			 WHERE b.is_valid = 'Y'
+	             <if test="opClaIds != null">
+					and b.op_pro_id in
+					 <foreach collection="opClaIds" item="Id" index="index" open="(" close=")" separator=","> 
+		           		#{Id}
+		   		     </foreach>
+				 </if>
+			       <if test="searchKey != null">
+			       and (s.name like CONCAT('%',#{searchKey,jdbcType=VARCHAR},'%') or
+						s.nick_name like CONCAT('%',#{searchKey,jdbcType=VARCHAR},'%'))
+				   </if>  
+			 GROUP By b.student_id,s.`name`,s.nick_name
+			 having count(b.id) <![CDATA[>=]]> #{professNumber,jdbcType=INTEGER}
+		 ) b
+  </select>
+  
+  <select id="findStuProfessPool" resultType="com.moon.vip.infra.vo.report.StuPrefessVO" parameterType="com.moon.vip.infra.vo.search.StuProfessSearchParams">
+  		   SELECT b.student_id studentId,
+  		    s.`name` studentName,
+  		     s.nick_name studentNickName,
+  		      count(b.id) processNumber, 
+  		      group_concat(m.name) processNames 	
+			  FROM (
+				       select distinct base.student_id,base.ID,base.op_pro_id,base.is_valid															
+						from vip_student_professional base
+						JOIN ( SELECT cls.id clsId,cls.`name`,dep.id depId,pro.id proId
+								 FROM vip_organizational_professional cls 
+							          LEFT JOIN vip_organizational_professional dep on (cls.id = dep.partent_id and dep.is_valid = 'Y')
+							          LEFT JOIN vip_organizational_professional pro on (dep.id = pro.partent_id and pro.is_valid = 'Y')
+						        WHERE cls.is_valid = 'Y'  
+									  AND cls.partent_id = if(#{orgProCalId,jdbcType=INTEGER} = 0, 1,#{orgProCalId,jdbcType=INTEGER} )
+		                      )o on (o.clsId = base.op_pro_id or o.depId = base.op_pro_id or o.proId = base.op_pro_id) 
+	                   
+                   ) b
+		      JOIN vip_student_archives s on (b.student_id = s.id) 															
+              JOIN vip_organizational_professional m on (b.op_pro_id = m.id) 	
+			 WHERE b.is_valid = 'Y'
+	             <if test="opClaIds != null">
+					and b.op_pro_id in
+					 <foreach collection="opClaIds" item="Id" index="index" open="(" close=")" separator=","> 
+		           		#{Id}
+		   		     </foreach>
+				 </if>
+			       <if test="searchKey != null">
+			       and (s.name like CONCAT('%',#{searchKey,jdbcType=VARCHAR},'%') or
+						s.nick_name like CONCAT('%',#{searchKey,jdbcType=VARCHAR},'%'))
+				   </if>  
+			 GROUP By b.student_id,s.`name`,s.nick_name
+			 having count(b.id) <![CDATA[>=]]> #{professNumber,jdbcType=INTEGER}
+		     order by count(b.id) DESC
+		     limit #{startNumber,jdbcType=INTEGER},#{pageSize,jdbcType=INTEGER}
+  </select>
+</mapper>

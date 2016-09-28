@@ -1,0 +1,36 @@
+<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ include  file="/WEB-INF/common/taglib.jsp"%>
+<%@page isELIgnored="false"%> 
+<table width="100%" class="table_style">
+             <tr>
+             <th width="40"><input type="checkbox" onclick="SelectAll()" id="selectAll"></th>
+             <th width="80">序号</th>
+             <th>职业名称</th>
+             <th>操作</th>
+             </tr>
+             <c:if test="${fn:length(list) == 0}">
+	             <tr><td colspan="4">暂无数据</td></tr>
+	         </c:if>
+	         <c:forEach  items="${list}" var="s" varStatus="status">
+	             <tr>
+		             <td><input name ="items" type="checkbox" class="items" data-id="${s.id}" ></td>
+		             <td>${status.index+1}</td>
+		             <td>${s.codeValue}</td>
+		             <td><a href="javascript:void(0);" data-id ="${s.id}" class="edit_icon main_icon"></a></td>
+	             </tr>
+	            
+             </c:forEach>
+</table>
+ <!--修改职业弹出层-->
+<div class="pop_div updateProfession">
+     <div class="pop_content">
+          <div class="pop_title"><span>修改职业</span></div>
+          <div class="pop_student">
+               <div class="status_con statusCon">
+                    <p><span>职业名称：</span><input type="text" class="search_box boxbor" value="${vo.codeValue}" id="value" placeholder="请输入1~20个字符"/></p>
+               </div>
+          </div>
+          <div class="pop_btn"><a href="javascript:void(0);"  class="add_btn bg_blue save">保存</a><a href="javascript:void(0);" class="add_btn bg_gray marl_20 NO">取消</a></div>
+     </div>
+</div>
+<input type="hidden" id="itemCount" value="${count}" />

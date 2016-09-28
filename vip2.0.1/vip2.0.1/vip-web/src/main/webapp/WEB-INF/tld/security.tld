@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee web-jsptaglibrary_2_0.xsd"
+	version="2.0">
+	<tlib-version>1.0</tlib-version>
+	<jsp-version>2.0</jsp-version>
+	<description>自定义权限标签</description>
+	<short-name>vip</short-name>
+	<uri></uri>
+
+	<tag>
+		<name>security</name>
+		<tagclass>com.moon.vip.tag.SecurityTag</tagclass>
+		<info>securityTag</info>
+		<attribute>
+			<name>operType</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>organizationId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>logicShip</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>selectSecurity</name>
+		<tagclass>com.moon.vip.tag.SelectSecurityTag</tagclass>
+		<info>selectSecurityTag</info>
+		<attribute>
+			<name>organizationId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	<tag>
+		<name>deleteSecurity</name>
+		<tagclass>com.moon.vip.tag.DeleteSecurityTag</tagclass>
+		<info>deleteSecurityTag</info>
+		<attribute>
+			<name>organizationId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	<tag>
+		<name>insertSecurity</name>
+		<tagclass>com.moon.vip.tag.InsertSecurityTag</tagclass>
+		<info>insertSecurityTag</info>
+		<attribute>
+			<name>organizationId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+	<tag>
+		<name>updateSecurity</name>
+		<tagclass>com.moon.vip.tag.UpdateSecurityTag</tagclass>
+		<info>updateSecurityTag</info>
+		<attribute>
+			<name>organizationId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+</taglib>

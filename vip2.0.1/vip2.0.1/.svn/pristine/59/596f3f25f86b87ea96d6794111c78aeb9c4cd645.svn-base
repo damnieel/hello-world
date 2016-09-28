@@ -1,0 +1,21 @@
+#application configs
+
+#jdbc druid config
+jdbc.driver = ${vip.jdbc.driver}
+jdbc.url = ${vip.jdbc.url}
+jdbc.username = ${vip.jdbc.username}
+jdbc.password = ${vip.jdbc.password}
+sso.client.isformal = ${isformal}
+
+#hibernate config
+hibernate.dialect = org.hibernate.dialect.MySQLDialect
+hibernate.show_sql = true
+hibernate.format_sql = false
+hibernate.hbm2ddl.auto = update
+hibernate.cache.use_second_level_cache = true
+hibernate.cache.use_query_cache = true
+hibernate.cache.region.factory_class = org.hibernate.cache.ehcache.EhCacheRegionFactory
+hibernate.cache.provider_configuration_file_resource_path = ehcache.xml
+
+#fdfs_client
+#fdfs.client = classpath*:META-INF/dfs/fdfs_client.conf

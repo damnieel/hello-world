@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.RoleDataActionSqlMapper" >
+	<!-- 删除该角色所有的数据和操作 -->
+	<delete id="deleteDataActByRoleId">
+		delete from vip_role_data_action 
+		where role_id = #{roleId, jdbcType=INTEGER};
+	</delete>
+</mapper>

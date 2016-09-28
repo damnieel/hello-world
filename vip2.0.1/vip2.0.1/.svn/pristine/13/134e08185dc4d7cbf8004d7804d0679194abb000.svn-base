@@ -1,0 +1,81 @@
+$(function(){	
+	$.ajaxSetup({
+	  async: false
+	});
+	getUserCount();
+	$(".search_icon").on("click", function(){
+		getUserCount();
+	})
+})
+function getUserCount() {
+	delLocalCookie("pageId");
+	var url = basePath+"admin/userManage/getUserCount.htmls";
+	var sendData = getSearchVO();
+	$.post(url,sendData,function(data){
+		itemCount = eval("("+data+")");
+		tm_init_page(itemCount);
+	})
+}
+/* 用户管理 */
+function tm_load_template(pageNo,psize,callback){
+	tmLoading("加载中...");
+	var url = basePath+"admin/userManage/getUserData.htmls";
+	
+	var sendData = getSearchVO();
+	sendData.pageNo = pageNo*psize;
+	sendData.pSize = psize;
+	
+	$.ajax({
+		url: url,
+		async:false,
+		data : sendData,
+		type : "post",
+		success : function(data) {
+			$('#allUnfinished').html(data).show();
+			$(".tmui-loading").click();
+			
+//			if($("#tz_items_").length == 1) {
+//				var pageId = getCookie("pageId");
+//				if(pageId > 0) {
+//					setCookie("pageId", pageId-1);
+//					window.location.reload();			
+//				}
+//			}
+//			
+			$(".resetPsw").click(function(){
+				var id = $(this).data("id");
+				var url = basePath+"admin/userManage/resetPsw.htmls";
+				$.post(url, {"id":id}, backHandler);
+			})
+			$(".delEmpRole").click(function(){
+				var employeeCode = $(this).data("employeecode");
+				var employeeId = $(this).data("empid");
+				
+				tm_dialoag.confirm({title:"删除",content:"您确定删除吗?",height:170,callback:function(ok){
+					if(ok){
+						var url = basePath+"admin/userManage/delEmpRole.htmls";
+						$.post(url, {"employeeId":employeeId,"employeeCode":employeeCode}, backHandler);
+					}
+				}
+				});
+			})
+		}
+	});            
+}
+/***分页的初始化方法***/
+function tm_init_page(itemCount) {
+	$("#page").pagination(itemCount, {
+		num_edge_entries : 3, /***边缘页数***/
+		num_display_entries : 3, /***主体页数***/
+		num_edge_entries : 3,	/****两侧显示的首尾分页的条目数***/
+		current_page : 0,
+		showGo:true,
+		showSelect:true,
+		items_per_page :10, /***每页显示X项***/
+		prev_text : "前一页",
+		next_text : "后一页",
+		callback : function(pageNo,psize) {
+			tm_load_template(pageNo,psize);
+		}
+	});
+};	

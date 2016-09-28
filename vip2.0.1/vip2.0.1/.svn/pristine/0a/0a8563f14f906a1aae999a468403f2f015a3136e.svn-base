@@ -1,0 +1,134 @@
+/***学员信息展示列表***/
+var isFirst = 1;
+
+var orgId=1,end,start,keyword;
+var dom=null;
+$(function(){
+	tmLoading("加载中...",2);
+	//初始化10条全部数据
+	$.ajax({
+		type:"get",
+		url:basePath+"student/repeatStudent/repeatStudentTemplateCount.htmls",
+		success:function(data){
+			tm_init_page(data,false);
+		}
+	});
+	$(".search_icon").click(function(){
+		keyword=$("#keyword").val();
+		start=$("#start").val();
+		end=$("#end").val();
+		dom = $("#element_id>select:visible:last");
+		orgId = (dom.val() == 0)?dom.prev("select").val():dom.val();
+		if(keyword.length>25){
+			tmLoading("输入的字数过多", 1);
+			$("#keyword").select();
+			return false;
+		}
+		$.ajax({
+			url: basePath+"student/repeatStudent/repeatStudentTemplateCount.htmls",
+			data:{
+				"startTime":start,
+				"endTime":end,
+				"keyword":keyword,
+				"offset" : 0,
+				"pageSize": 10,
+				"organizationId":orgId
+			},
+			success:function(data){
+				tm_init_page(data,true);
+			} 
+		});
+	});
+});
+/*** 分页的初始化方法 ***/
+function tm_init_page(itemCount,isSearch) {
+	$("#page").pagination(itemCount, {
+		num_edge_entries : 3, /***边缘页数***/
+		num_display_entries : 3, /***主体页数***/
+		current_page : 0,
+		showGo:true,
+		showSelect:true,
+		is_search:isSearch,
+		items_per_page : 10, /***每页显示X项***/
+		prev_text : "前一页",
+		next_text : "后一页",
+		callback : function(pageNo,psize) {
+			tm_load_template(pageNo,psize);
+		}
+	});
+};
+/*** 分页模板 ***/
+function tm_load_template(pageNo,psize,callback){
+	$.ajax({
+		url: basePath+"student/repeatStudent/repeatStudentTemplate.htmls",
+		data : {
+			"offset" : pageNo*psize,
+			"pageSize": psize,
+			"startTime":start,
+			"endTime":end,
+			"keyword":keyword,
+			"organizationId":orgId
+		},
+		success : function(data) {
+			    tmLoading("加载中...",2);
+				$('#repeatStudent').html(data).show();
+				clickEvent();
+		}
+	});            
+}
+/***浏览器兼容(回车事件)***/
+document.onkeydown=function(e){
+	var keycode=document.all?event.keyCode:e.which;
+	if(keycode==13){
+		$(".search_icon").click();
+	}
+}
+
+/***重复数据修改***/
+function clickEvent(){
+	 /***鼠标双击事件**/
+    $(".ondbl").dblclick(function(){
+  	  $(this).children("input").show();
+  	  $(this).children("input").focus();
+  	  $(this).children("span").hide();
+	      var professionCode = $(".codeNumber").val();
+	    	
+    })
+    $(".codeNumber").blur(function(){
+  	  $(this).hide();
+  	  $(this).siblings("span").show();
+    });
+    
+  
+    
+    $(".again_btn").click(function(){
+  	  var id = $(this).data("id");
+  	  var professionCode =$(this).parent("td").siblings(".ondbl").children("input").val();
+  	  var professionCodes = $(this).data("cc");
+  	  if(professionCode == professionCodes){
+  		  tmLoading("请双击学员编号进行修改",3);
+  		  return false;
+  	  }
+  	  
+  	 	tm_dialoag.confirm({
+      		sureText : "确定",
+      		canceText : "取消",
+      		content : "您确定修改学员信息吗?",
+      		callback : function(ok) {
+  	  $.tpAjax.request({
+				url:basePath+"student/repeatStudent/updateStuProCode.htmls",
+				callback:function(data){
+					var data =eval("("+data+")");
+					if(data=="success"){
+						tmLoading("修改成功",1);
+						location.reload(true);
+					}else if(data=="fail"){
+						tmLoading("修改的学员专业编号存在相同的记录，请重新赋值",1);
+					}else if(data == "fails"){
+						tmLoading("修改失败",1);
+					}
+				}
+			},{  "id":id,"professionCode":professionCode}); 
+      	}});
+    });
+}

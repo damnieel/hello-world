@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.student.PaymentMapper" >
+	
+   <!-- 展示全部支付方式 -->
+   <select id="selectAllPayment" resultType="com.moon.vip.infra.vo.student.PaymentVO">
+   		SELECT ID AS id,type AS type, type_name AS typeName,code_key AS codeKey,code_value AS codeValue,
+      code_order AS codeOrder,is_valid AS isValid,note AS note,create_time AS createTime,
+      creator AS creator FROM vip_code_table 
+      WHERE type='payment' 
+      AND is_valid='Y' 
+      ORDER BY create_time DESC limit #{offset},#{pageSize};
+   </select>
+   
+   <!-- 添加支付方式 -->
+   <insert id="insertPayment" parameterType="com.moon.vip.infra.vo.student.PaymentVO">
+   		INSERT into vip_code_table (type,type_name,code_key,code_value,code_order,is_valid,create_time,
+   		creator)
+   		VALUES('payment','支付方式',#{codeKey,jdbcType=VARCHAR},#{codeValue,jdbcType=VARCHAR},
+   		 #{codeOrder,jdbcType=INTEGER},'Y',#{createTime,jdbcType=TIMESTAMP},#{creator,jdbcType=VARCHAR})
+   </insert>
+   
+   <!-- 修改支付方式 -->
+   <update id="updatePayment" parameterType="com.moon.vip.infra.vo.student.PaymentVO">
+   		 UPDATE  vip_code_table SET code_value =#{codeValue,jdbcType=VARCHAR} 
+   		 ,modify_time=#{modifyTime,jdbcType=TIMESTAMP}
+      WHERE 
+          type ='payment' AND ID =#{id,jdbcType=INTEGER};
+   </update>
+   
+   <!-- 批量删除支付方式 -->
+   <delete id="deletePayment" parameterType="java.util.List">
+   		 UPDATE vip_code_table SET is_valid='N'
+   		 WHERE type='payment' AND ID in
+         <foreach collection="list" item="id" open="(" separator="," close=")">
+           #{id,jdbcType=INTEGER}
+         </foreach>
+   </delete>
+   
+   <!-- 统计支付方式条数 -->
+   <select id="count" resultType="Integer">
+   		SELECT COUNT(*) FROM vip_code_table WHERE TYPE='payment' AND is_valid='Y';
+   </select>
+   
+   <!-- 通过id查询支付方式 -->
+   <select id="selectPaymentById" resultType="string">
+   		SELECT code_value AS codeValue FROM vip_code_table WHERE id=#{id}
+   </select>
+   
+   <!-- 查询所有codeValue -->
+   <select id="selectCodeValue" resultType="string">
+   		SELECT code_value FROM vip_code_table WHERE TYPE='payment' AND is_valid='Y';
+   </select>
+   
+   <!-- 查询code_order最大值 -->
+   <select id="selectMaxCodeOrder" resultType="Integer">
+   		SELECT MAX(code_order) FROM vip_code_table WHERE TYPE='payment';
+   </select>
+</mapper>

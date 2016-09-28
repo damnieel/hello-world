@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.moon.vip.application.sys.RoleMenuResourceSqlMapper" >
+  <!-- 根据roles 获取主菜单 -->
+  <select id="findMainMenuByRoleId" resultType="com.moon.vip.infra.vo.sys.MenuVO" parameterType="java.lang.Integer" >
+	SELECT
+		menuRes1.ID as id,
+		menuRes1.`name` as name,
+		menuRes1.class_name as className,
+		menuRes1.menu_lable_id as menuLableId
+	FROM
+		vip_menu_resource menuRes1
+	WHERE
+		menuRes1.is_valid = 'Y'
+	AND menuRes1.type = 'menu'
+	AND menuRes1.ID in 
+	(SELECT roleMenu.menu_id from vip_role_menu roleMenu WHERE role_id in 
+		<foreach collection="roleId" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	)
+	ORDER BY menuRes1.menu_order asc
+	;  
+	</select>
+	<!-- 根据roles 获取子菜单 -->
+	<select id="findSubMenuByRoleId" resultType="com.moon.vip.infra.vo.sys.MenuVO" parameterType="java.lang.Integer" >
+	SELECT
+		menuRes2.ID as id ,
+		menuRes2. NAME as name ,
+		menuRes2.url as url,
+		menuRes2.class_name as className,
+		menuRes2.menu_lable_id as menuLableId,
+		menuRes2.parent_id as parentId,
+		menuRes1.menu_lable_id as parentMenuLableId, 
+		menuRes1.name as parentMenuLableName
+	FROM
+		vip_menu_resource menuRes1
+	LEFT JOIN vip_menu_resource menuRes2 ON menuRes1.ID = menuRes2.parent_id
+	WHERE
+		menuRes1.is_valid = 'Y'
+	AND menuRes2.is_valid = 'Y'
+	and menuRes1.ID in (SELECT roleMenu.menu_id from vip_role_menu roleMenu WHERE role_id in 
+	
+		<foreach collection="roleId" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	) 
+	and menuRes2.ID in (SELECT roleMenu.menu_id from vip_role_menu roleMenu WHERE role_id in 
+	
+		<foreach collection="roleId" item="id" separator="," open="(" close=")">
+			#{id}
+		</foreach>
+	) 
+	ORDER BY menuRes2.menu_order asc 
+	;
+	</select>
+	<!-- 根据roles 获取子菜单 -->
+	<select id="findAllSubMenu" resultType="com.moon.vip.infra.vo.sys.MenuVO" >
+	SELECT
+		menuRes2.ID as id ,
+		menuRes2. NAME as name ,
+		menuRes2.url as url,
+		menuRes2.class_name as className,
+		menuRes2.menu_lable_id as menuLableId,
+		menuRes2.parent_id as parentId,
+		menuRes1.menu_lable_id as parentMenuLableId, 
+		menuRes1.name as parentMenuLableName
+	FROM
+		vip_menu_resource menuRes1
+	LEFT JOIN vip_menu_resource menuRes2 ON menuRes1.ID = menuRes2.parent_id
+	WHERE
+		menuRes1.is_valid = 'Y'
+	AND menuRes2.is_valid = 'Y'
+	ORDER BY menuRes2.ID asc	
+	</select>
+</mapper>

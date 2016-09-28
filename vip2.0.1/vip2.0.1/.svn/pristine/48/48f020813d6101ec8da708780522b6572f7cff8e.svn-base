@@ -1,0 +1,35 @@
+<%@ page language="java" pageEncoding="UTF-8"%>
+<%@ include  file="/WEB-INF/common/taglib.jsp"%>
+<%@page isELIgnored="false"%> 
+ <table width="100%" class="table_style">
+	      <tr>
+	             <th>序号</th>
+	             <th>学员姓名</th>
+	             <th>手机号码</th>
+	             <th>QQ</th>
+	             <!-- <th>报名日期</th>
+	             <th>是否欠款</th>
+ -->	             <th>操作</th>
+	      </tr>
+	      <c:if test="${fn:length(list) == 0}">
+	             <tr><td colspan="5">暂无学员数据</td></tr>
+	      </c:if>
+	      <c:forEach  items="${list}" var="s" varStatus="status">
+	      <tr>
+	             <td>${status.index+1}</td>
+	             <td>${s.stuName}</td>
+	             <td>${s.telephone}</td>
+	             <td>${s.QQ}</td>
+	             <%-- <td><fmt:formatDate value="${s.enterDate}" type="date" /></td>
+	             <c:choose>
+	               <c:when test="${s.isArrears == 'N'}"><td>否</td></c:when>
+	               <c:when test="${s.isArrears == 'Y'}"><td>是</td></c:when>
+	               <c:when test="${empty s.isArrears}"><td></td></c:when>
+	             </c:choose> --%>
+	             <td><a href="javascript:void(0);" data-id="${s.id}" class="delet_specialty main_icon"></a>
+	             </td>
+	       </tr>
+	       </c:forEach>
+      </table>
+      <input type="hidden" id="itemCount" value="${count}" />
+      <script type="text/javascript" src="${basePath}resources/js/pagin/jquery.pagination.js"></script>
